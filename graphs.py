@@ -123,8 +123,8 @@ app.layout = dbc.Container(fluid=True, children= [
         ]),
     html.Div([
         html.Label('Uhrzeit Filter'),
-            dcc.Input(id=('start_time'), value='11:00', type='text'),
-            dcc.Input(id=('end_time'), value='23:00', type='text'),
+            dcc.Input(id='start_time', value='11:00', type='text'),
+            dcc.Input(id='end_time', value='23:00', type='text'),
     ]),
     html.Div([
         html.Label('Stunden grupieren'),
@@ -167,19 +167,25 @@ def date_range(start_date, end_date):   #displays selected dates -> removeable
 def visualize_func(min_date, max_date, x_value, y_value, weekday, start_time, end_time, hours):
     df = df_json
     df = sort_by_dates(df)
-    if(min_date is not None and max_date is not None):
+    if min_date is not None and max_date is not None:
         df = filter_for_date(min_date, max_date, df)
-    if(weekday != "all"):
+    if weekday != "all":
         df = filter_for_weekday(weekday, df)
-    if(start_time != "11:00" or end_time != "23:00"):
+    if start_time != "11:00" or end_time != "23:00":
         df = filter_for_time(start_time, end_time, df)
-
-    if(x_value == "Uhrzeit"):
-        df = group_hours(df, x_value, y_value, hours)
+    if x_value == "Uhrzeit":
+        df = group_hours(df, y_value, hours)
 
     fig = average(x_value, y_value, df)
 
     return fig
+
+
+def sort_by_dates(df_date):
+    df_date["datum"] = pd.to_datetime(df_date["datum"], dayfirst=True) #zu datetime
+    df_date = df_date.sort_values(by="datum")   #sortiert
+    df_date["datum"] = df_date["datum"].dt.strftime("%d.%m.%Y") #umwandeln in deutsches format
+    return df_date
 
 
 def filter_for_date(min_date, max_date, df):
@@ -191,37 +197,22 @@ def filter_for_date(min_date, max_date, df):
     return df_date
 
 
-def sort_by_dates(df_date):
-    df_date["datum"] = pd.to_datetime(df_date["datum"], dayfirst=True) #zu datetime
-    df_date = df_date.sort_values(by="datum")   #sortiert
-    df_date["datum"] = df_date["datum"].dt.strftime("%d.%m.%Y") #umwandeln in deutsches format
-    return df_date
-
 def filter_for_weekday(day, df):
-    german = {
-        "Monday": "Montag",
-        "Tuesday": "Dienstag",
-        "Wednesday": "Mittwoch",
-        "Thursday": "Donnerstag",
-        "Friday": "Freitag",
-        "Saturday": "Samstag",
-        "Sunday": "Sonntag"
-    }
     df_wd = df.loc[pd.to_datetime(df["datum"], dayfirst=True).dt.strftime('%A') == day]
-    # print(pd.to_datetime(df_wd["datum"]).dt.strftime('%A'), pd.to_datetime(df_wd["datum"]))
     return df_wd
 
 
 def filter_for_time(start_time, end_time, df):
     df_time = df.loc[start_time < df["Uhrzeit"]]
     df_time = df_time.loc[end_time > df_time["Uhrzeit"]]
-    # df_time['Uhrzeit'] = pd.to_datetime(df_time["Uhrzeit"]).dt.hour #unnötig jetzt
     return df_time
 
 
-def group_hours(df, x_value, y_value, hours):
-    d_time = {"Uhrzeit": pd.to_datetime(df["Uhrzeit"]), y_value: df[y_value].astype(float)}
-    df_time = pd.DataFrame(data=d_time)
+def group_hours(df, y_value, hours):
+    if hours == 0:
+        return df
+    dict_time = {"Uhrzeit": pd.to_datetime(df["Uhrzeit"]), y_value: df[y_value].astype(float)}
+    df_time = pd.DataFrame(data=dict_time)
     time_range = str(hours) + "H"
     df_time = df_time.resample(time_range, on='Uhrzeit').mean()
     df_time = df_time.reset_index()  # notwendig, weil das drüber den index verschiebt
@@ -229,18 +220,17 @@ def group_hours(df, x_value, y_value, hours):
     return df_time
 
 
-def average(x,y,data):
+def average(x, y, data):
     fig = make_subplots(specs=[[{"secondary_y": True}]])
     for contestant, group in data.groupby(x, sort=False):
         avg = list(group[y].astype(float))
-        avg = mean(avg)  # mittelwert der gegroupten y-werte
-        # m = []
-        # m.append(avg)
+        avg = mean(avg)
         m = [avg]
         fig = fig.add_trace(go.Bar(x=group[x], y=m,
                              name=contestant, #text=group[y],
                              textposition='auto',
                              ))
+        fig.update_annotations(hovertext=x)
     return fig
 
 

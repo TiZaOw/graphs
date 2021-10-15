@@ -66,11 +66,7 @@ app.layout = dbc.Container(fluid=True, children= [
                                 dbc.Row([dbc.Col(html.Div(id='output'), width='auto', align='center')], justify='center')
 
                         ],justify='center'),
-
-
                 ],width='auto', align='end'),
-
-
         ], justify='center'),
         dbc.Row(
         [
@@ -81,8 +77,10 @@ app.layout = dbc.Container(fluid=True, children= [
     ]),
     html.Br(),
     html.Div([
+        html.Label('Datumsbereich'),
         dcc.DatePickerRange(
             id='my-date-picker-range',
+            display_format="DD.MM.YYYY",
             min_date_allowed=date(2021, 4, 5),
             max_date_allowed=date(2021, 9, 19),
             initial_visible_month=date(2021, 6, 5),
@@ -105,26 +103,26 @@ app.layout = dbc.Container(fluid=True, children= [
     ]),
     html.Div([
         html.Label('Wochentag Filter'),
-            dcc.RadioItems(
-                id="weekday",
-                options=[
-                    {'label': 'Alle Wochentage', 'value': 'all'},
-                    {'label': 'Montag', 'value': 'Montag'},
-                    {'label': 'Dienstag', 'value': 'Dienstag'},
-                    {'label': 'Mittwoch', 'value': 'Mittwoch'},
-                    {'label': 'Donnerstag', 'value': 'Donnerstag'},
-                    {'label': 'Freitag', 'value': 'Freitag'},
-                    {'label': 'Samstag', 'value': 'Samstag'},
-                    {'label': 'Sonntag', 'value': 'Sonntag'}
-                ],
-                value='all'
-            ),
+        dcc.RadioItems(
+            id="weekday",
+            options=[
+                {'label': 'Alle Wochentage', 'value': 'all'},
+                {'label': 'Montag', 'value': 'Montag'},
+                {'label': 'Dienstag', 'value': 'Dienstag'},
+                {'label': 'Mittwoch', 'value': 'Mittwoch'},
+                {'label': 'Donnerstag', 'value': 'Donnerstag'},
+                {'label': 'Freitag', 'value': 'Freitag'},
+                {'label': 'Samstag', 'value': 'Samstag'},
+                {'label': 'Sonntag', 'value': 'Sonntag'}
+            ],
+            value='all'
+        ),
         html.Div(id='output-weekday-filter')
         ]),
     html.Div([
         html.Label('Uhrzeit Filter'),
-            dcc.Input(id='start_time', value='11:00', type='text'),
-            dcc.Input(id='end_time', value='23:00', type='text'),
+        dcc.Input(id='start_time', value='11:00', type='text'),
+        dcc.Input(id='end_time', value='23:00', type='text'),
     ]),
     html.Div([
         html.Label('Stunden grupieren'),
@@ -133,26 +131,6 @@ app.layout = dbc.Container(fluid=True, children= [
     ])
 ],)
 
-
-@app.callback(
-    Output('output-container-date-picker-range', 'children'),
-    Input('my-date-picker-range', 'start_date'),
-    Input('my-date-picker-range', 'end_date'))
-def date_range(start_date, end_date):   #displays selected dates -> removeable
-    string_prefix = 'You have selected: '
-    if start_date is not None:
-        start_date_object = date.fromisoformat(start_date)
-        start_date_string = start_date_object.strftime('%d.%m.%Y')
-        string_prefix = string_prefix + 'Start Date: ' + start_date_string + ' | '
-    if end_date is not None:
-        end_date_object = date.fromisoformat(end_date)
-        end_date_string = end_date_object.strftime('%d.%m.%Y')
-        string_prefix = string_prefix + 'End Date: ' + end_date_string
-
-    if len(string_prefix) == len('You have selected: '):
-        return 'Select a date to see it displayed here'
-    else:
-        return string_prefix
 
 @app.callback(
     Output('graph', 'figure'),
@@ -167,6 +145,7 @@ def date_range(start_date, end_date):   #displays selected dates -> removeable
 def visualize_func(min_date, max_date, x_value, y_value, weekday, start_time, end_time, hours):
     df = df_json
     df = sort_by_dates(df)
+    df = df.dropna(subset=["Uhrzeit"])  #kicks NaN from Dataset, potentially removable
     if min_date is not None and max_date is not None:
         df = filter_for_date(min_date, max_date, df)
     if weekday != "all":
@@ -175,8 +154,10 @@ def visualize_func(min_date, max_date, x_value, y_value, weekday, start_time, en
         df = filter_for_time(start_time, end_time, df)
     if x_value == "Uhrzeit":
         df = group_hours(df, y_value, hours)
+    if x_value == "wochentag":
+        df = sort_weekdays(df)
 
-    fig = average(x_value, y_value, df)
+    fig = figure(x_value, y_value, df)
 
     return fig
 
@@ -220,17 +201,27 @@ def group_hours(df, y_value, hours):
     return df_time
 
 
-def average(x, y, data):
+def sort_weekdays(df):  #TODO: später auf deutsch (wenn anderes dataset)
+    weekdays = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
+    from pandas.api.types import CategoricalDtype
+    cat_type = CategoricalDtype(categories=weekdays, ordered=True)
+    df['wochentag'] = df['wochentag'].astype(cat_type)
+    return df
+
+
+def figure(x, y, data):
     fig = make_subplots(specs=[[{"secondary_y": True}]])
     for contestant, group in data.groupby(x, sort=False):
         avg = list(group[y].astype(float))
+        if not avg: #falls empty nur notwendig wegen sort_weekdays!?
+            break
         avg = mean(avg)
         m = [avg]
+        rounded = "%.2f" % avg
         fig = fig.add_trace(go.Bar(x=group[x], y=m,
-                             name=contestant, #text=group[y],
-                             textposition='auto',
-                             ))
-        fig.update_annotations(hovertext=x)
+                                   hovertemplate=f"{x}: {contestant} <br>{y}: {rounded} <extra></extra>",
+                                   name=contestant, text=rounded,
+                                   showlegend=False))
     return fig
 
 

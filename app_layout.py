@@ -23,34 +23,38 @@ app_layout = dbc.Container(fluid=True, children= [
         dbc.Row([dbc.Col(html.Div(heading), width='auto')], justify='end'),
         html.Hr(),
         html.Br(),
-        dbc.Row( #Selector
-        [
-            dbc.Col(
-                [
-                    dbc.Row(
-                        [
-                            dbc.Col(html.Div(
-                                dbc.RadioItems(
-                                    id="radios",
-                                    className="btn-group",
-                                    labelClassName="btn btn-secondary",
-                                    labelCheckedClassName="active",
-                                    options=
-                                        [
-                                        {"label": "Datum", "value": 'datum'},
-                                        {"label": "Wochentag", "value": 'wochentag'},
-                                        {"label": "Uhrzeit", "value": 'uhrzeit'},
-                                        ],
-                                    value='datum',
-                                ),className='radio-group'),align='center', width='auto'),
-
-                                dbc.Row([dbc.Col(html.Div(id='output'), width='auto', align='center')], justify='center')
-
-                        ],justify='center'),
-                ],width='auto', align='end'),
+        dbc.Row([
+            dbc.Col([
+                dbc.Row([
+                    dbc.Col(html.Div(
+                        dbc.RadioItems(
+                            id="radios",
+                            className="btn-group",
+                            labelClassName="btn btn-primary",
+                            labelCheckedClassName="active",
+                            options=[
+                                {"label": "Datum", "value": 'datum'},
+                                {"label": "Wochentag", "value": 'wochentag'},
+                                {"label": "Uhrzeit", "value": 'uhrzeit'},
+                            ],
+                            value='datum',
+                        ),className='radio-group'),align='center', width='auto'),
+                ],justify='center'),
+                dbc.Col(html.Div(
+                    dbc.RadioItems(
+                        id="y-value",
+                        className="btn-group",
+                        labelClassName="btn btn-secondary",
+                        labelCheckedClassName="active",
+                        options=[
+                            {'label': 'Score-Essen', 'value': 'score_essen'},
+                            {'label': 'Score-Lieferung', 'value': 'score_lieferung'}
+                        ],
+                        value='score_essen'
+                    ),className='radio-group'),align='center', width='auto')
+            ],width='auto', align='center'),
         ], justify='center'),
-        dbc.Row(
-        [
+        dbc.Row([
 
          dbc.Col(dcc.Graph(id='graph', figure=default_fig), width='auto', align='center'),
 
@@ -62,26 +66,31 @@ app_layout = dbc.Container(fluid=True, children= [
         dcc.DatePickerRange(
             id='my-date-picker-range',
             display_format="DD.MM.YYYY",
-            min_date_allowed=date(2021, 4, 5),
-            max_date_allowed=date(2021, 9, 19),
             initial_visible_month=date(2021, 6, 5),
-            end_date=date(2021, 10, 25)
+            # end_date=date(2021, 10, 25)
         ),
-        html.Div(id='output-container-date-picker-range')
+    ]),
+    html.Div([
+        dcc.Checklist(
+            id="months",
+            options=[
+                {'label': 'Monate gruppieren?', 'value': 'months'},
+            ],
+            value=['months']
+        ),
     ]),
     html.Br(),
-    html.Div([
-        html.Label('y-Achsen Auswahl'),
-        dcc.Dropdown(
-            id="y-value",
-            options=[
-                {'label': 'Score-Essen', 'value': 'score_essen'},
-                {'label': 'Score-Lieferung', 'value': 'score_lieferung'}
-            ],
-            value='score_essen'
-        ),
-        html.Div(id='output-score-dropdown')
-    ]),
+    # html.Div([
+    #     html.Label('y-Achsen Auswahl'),
+    #     dcc.Dropdown(
+    #         id="y-value",
+    #         options=[
+    #             {'label': 'Score-Essen', 'value': 'score_essen'},
+    #             {'label': 'Score-Lieferung', 'value': 'score_lieferung'}
+    #         ],
+    #         value='score_essen'
+    #     ),
+    # ]),
     html.Div([
         html.Label('Wochentag Filter'),
         dcc.RadioItems(
@@ -98,16 +107,16 @@ app_layout = dbc.Container(fluid=True, children= [
             ],
             value='all'
         ),
-        html.Div(id='output-weekday-filter')
         ]),
     html.Div([
         html.Label('Uhrzeit Filter'),
-        dcc.Input(id='start_time', value='11:00', type='text'),
-        dcc.Input(id='end_time', value='23:00', type='text'),
+        dcc.Input(id='start_time', value='00:00', type='text'),
+        dcc.Input(id='end_time', value='24:00', type='text'),
     ]),
-    html.Div([
-        html.Label('Stunden grupieren'),
-        dcc.Slider(id=('hours'), min=0, max=5,
-                    marks={i: str(i) for i in range(1, 6)}, value=4, ),
-    ])
+    # html.Div([
+    #     html.Label('Stunden grupieren'),
+    #     dcc.Slider(id='hours', min=0, max=5,
+    #                marks={i: str(i) for i in range(1, 6)}, value=4, ),
+    # ]),
+
 ],)

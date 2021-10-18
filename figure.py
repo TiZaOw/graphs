@@ -14,10 +14,11 @@ from statistics import mean
 from plotly.subplots import make_subplots
 import locale
 import db
+import numpy as np
 
 locale.setlocale(locale.LC_TIME, 'de_DE')
 load_figure_template("litera")
-#TODO date picker no max limit
+
 def extract_weekday(df):
 
     df['wochentag'] = df["datum"].dt.strftime('%A')
@@ -41,7 +42,6 @@ def check_for_time_format(df):
     df = extract_weekday(df)
     df = extract_hour(df)
     df = only_date(df)
-
     return df
 
 df = db.df_json
@@ -49,7 +49,6 @@ df = db.df_json
 df = pd.read_excel('mongo_db/new_york_pizza_clean.xlsx')
 
 df = check_for_time_format(df)
-
 
 
 def get_default_fig():
@@ -66,8 +65,10 @@ def get_cleaning_df(df):
     return df
 
 
-def get_x_axis(x, y, hours, df):
+def get_x_axis(x, y, hours, df, month_grouped):
 
+    if x == "datum" and month_grouped:
+        df = group_month(df, y)
     if x == "uhrzeit":
         df = group_hours(df, y, hours)
     if x == "wochentag":
@@ -75,21 +76,21 @@ def get_x_axis(x, y, hours, df):
     return df
 
 
-def generate_figure(min_date, max_date, x_value, y_value, weekday, start_time, end_time, hours, df):
-    #TODO Nach Monated gruppieren
+def generate_figure(min_date, max_date, x_value, y_value, weekday, start_time, end_time, hours, months, df):
     #TODO "filter setzten" Funkionalität. Startet mit keinem Filter und kann hinzegfügt werden
     if min_date is not None and max_date is not None:
         df = filter_for_date(min_date, max_date, df)
     if weekday != "all":
         df = filter_for_weekday(weekday, df)
-    if start_time is not None and end_time is not None: #TODO funktion anpassen mit Zeiten nach O Uhr
+    if start_time is not None and end_time is not None:
         df = filter_for_time(start_time, end_time, df)
 
-    df = get_x_axis(x_value, y_value, hours, df)
+    df = get_x_axis(x_value, y_value, hours, df, months)
 
     fig = draw_figure(x_value, y_value, df)
 
     return fig
+
 
 def sort_by_dates(df_date):
     df_date["datum"] = pd.to_datetime(df_date["datum"], dayfirst=True) #zu datetime #TODO informieren warm dayfirst nötig ist
@@ -113,33 +114,37 @@ def filter_for_weekday(day, df):
 
 
 def filter_for_time(start_time, end_time, df):
-    df_time = df.loc[start_time < df["uhrzeit"]]
-    df_time = df_time.loc[end_time > df_time["uhrzeit"]]
+    if start_time < end_time:
+        df_time = df.loc[start_time <= df["uhrzeit"]]
+        df_time = df_time.loc[end_time >= df_time["uhrzeit"]]
+    else:
+        df_time = df.loc[np.logical_or(start_time <= df["uhrzeit"], end_time >= df["uhrzeit"])]
     return df_time
 
+
+def group_month(df, y_value):
+    dict_month = {"datum": df["datum"], y_value: df[y_value].astype(float)}
+    df_month = pd.DataFrame(data=dict_month)
+    df_month['datum'] = pd.to_datetime(df_month['datum'], dayfirst=True)
+    df_month = df_month.resample("M", on="datum").mean()
+    df_month = df_month.reset_index()
+    df_month['datum'] = df_month['datum'].dt.strftime("%m.%Y")
+    return df_month
 
 def group_hours(df, y_value, hours):
     if hours == 0:
         return df
-    print('before')
     dict_time = {"uhrzeit": df["uhrzeit"], y_value: df[y_value].astype(float)}
-    print('after')
-    print(dict_time)
     df_time = pd.DataFrame(data=dict_time)
     time_range = str(hours) + "H"
-    print('time_range')
-    print(time_range)
     df_time['uhrzeit'] = pd.to_datetime(df_time['uhrzeit'], format="%H-%M-%S")
     df_time = df_time.resample(time_range, on='uhrzeit').mean()
-    print(df_time)
     df_time = df_time.reset_index()  # notwendig, weil das drüber den index verschiebt
-    print(df_time)
     df_time["uhrzeit"] = df_time["uhrzeit"].dt.strftime("%H:%M")
-    print(df_time)
     return df_time
 
 
-def sort_weekdays(df):  #TODO: später auf deutsch (wenn anderes dataset)
+def sort_weekdays(df):
     weekdays = ['Montag', 'Dienstag', 'Mittwoch', 'Donnerstag', 'Freitag', 'Samstag', 'Sonntag']
     from pandas.api.types import CategoricalDtype
     cat_type = CategoricalDtype(categories=weekdays, ordered=True)
@@ -151,7 +156,7 @@ def draw_figure(x, y, data):
     fig = make_subplots(specs=[[{"secondary_y": True}]])
     for contestant, group in data.groupby(x, sort=False):
         avg = list(group[y].astype(float))
-        if not avg: #falls empty nur notwendig wegen sort_weekdays!?
+        if not avg: #falls empty nur notwendig wegen sort_weekdays
             break
         avg = mean(avg)
         m = [avg]

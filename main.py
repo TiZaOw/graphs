@@ -38,8 +38,9 @@ app.layout = app_layout.app_layout
     Input('weekday', 'value'),
     Input('start_time', 'value'),
     Input('end_time', 'value'),
-    Input('hours', 'value'))
-def visualize_func(min_date, max_date, x_value, y_value, weekday, start_time, end_time, hours):
+    Input('hours', 'value'),
+    Input('months', 'value'))
+def visualize_func(min_date, max_date, x_value, y_value, weekday, start_time, end_time, hours, months):
 
     # try:
     #     fig = figure.generate_figure(min_date, max_date, x_value, y_value, weekday,
@@ -49,7 +50,7 @@ def visualize_func(min_date, max_date, x_value, y_value, weekday, start_time, en
     #     print(str(e))
     #     return figure.get_empty_figure()
     fig = figure.generate_figure(min_date, max_date, x_value, y_value, weekday,
-                                 start_time, end_time, hours, figure.get_cleaning_df(figure.df))
+                                 start_time, end_time, hours, months, figure.get_cleaning_df(figure.df))
 
     return fig
 

@@ -42,16 +42,16 @@ app.layout = app_layout.app_layout
     Input('months', 'value'))
 def visualize_func(min_date, max_date, x_value, y_value, weekday, start_time, end_time, hours, months):
 
-    # try:
-    #     fig = graphs.generate_figure(min_date, max_date, x_value, y_value, weekday,
-    #                                  start_time, end_time, hours)
-    # except Exception as e:
-    #     print('error generating figure')
-    #     print(str(e))
-    #     return graphs.get_empty_figure()
+    try:
+        fig = graphs.generate_figure(min_date, max_date, x_value, y_value, weekday,
+                                     start_time, end_time, hours, months, graphs.get_cleaning_df(graphs.df))
+    except Exception as e:
+        print('error generating figure')
+        print(str(e))
+        return graphs.get_empty_figure()
 
-    fig = graphs.generate_figure(min_date, max_date, x_value, y_value, weekday,
-                                  start_time, end_time, hours, months, graphs.get_cleaning_df(graphs.df))
+    # fig = graphs.generate_figure(min_date, max_date, x_value, y_value, weekday,
+    #                               start_time, end_time, hours, months, graphs.get_cleaning_df(graphs.df))
 
     return fig
 

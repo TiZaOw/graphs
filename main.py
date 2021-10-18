@@ -14,7 +14,7 @@ from statistics import mean
 from plotly.subplots import make_subplots
 import locale
 import db
-import figure
+import graphs
 import app_layout
 
 locale.setlocale(locale.LC_TIME, 'de_DE')
@@ -38,8 +38,9 @@ app.layout = app_layout.app_layout
     Input('weekday', 'value'),
     Input('start_time', 'value'),
     Input('end_time', 'value'),
-    Input('hours', 'value'))
-def visualize_func(min_date, max_date, x_value, y_value, weekday, start_time, end_time, hours):
+    Input('hours', 'value'),
+    Input('months', 'value'))
+def visualize_func(min_date, max_date, x_value, y_value, weekday, start_time, end_time, hours, months):
 
     # try:
     #     fig = figure.generate_figure(min_date, max_date, x_value, y_value, weekday,
@@ -48,10 +49,20 @@ def visualize_func(min_date, max_date, x_value, y_value, weekday, start_time, en
     #     print('error generating figure')
     #     print(str(e))
     #     return figure.get_empty_figure()
-    fig = figure.generate_figure(min_date, max_date, x_value, y_value, weekday,
-                                 start_time, end_time, hours, figure.get_cleaning_df(figure.df))
+    fig = graphs.generate_figure(min_date, max_date, x_value, y_value, weekday,
+                                 start_time, end_time, hours, months, graphs.get_cleaning_df(graphs.df))
 
     return fig
+
+
+@app.callback(
+    Output("collapse", "is_open"),
+    [Input("radios", "value")],
+)
+def toggle_collapse(radios):
+    if radios == "uhrzeit":
+        return True
+    return False
 
 
 if __name__ == "__main__":

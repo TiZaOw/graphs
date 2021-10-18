@@ -80,17 +80,6 @@ app_layout = dbc.Container(fluid=True, children= [
         ),
     ]),
     html.Br(),
-    # html.Div([
-    #     html.Label('y-Achsen Auswahl'),
-    #     dcc.Dropdown(
-    #         id="y-value",
-    #         options=[
-    #             {'label': 'Score-Essen', 'value': 'score_essen'},
-    #             {'label': 'Score-Lieferung', 'value': 'score_lieferung'}
-    #         ],
-    #         value='score_essen'
-    #     ),
-    # ]),
     html.Div([
         html.Label('Wochentag Filter'),
         dcc.RadioItems(
@@ -113,10 +102,15 @@ app_layout = dbc.Container(fluid=True, children= [
         dcc.Input(id='start_time', value='00:00', type='text'),
         dcc.Input(id='end_time', value='24:00', type='text'),
     ]),
-    # html.Div([
-    #     html.Label('Stunden grupieren'),
-    #     dcc.Slider(id='hours', min=0, max=5,
-    #                marks={i: str(i) for i in range(1, 6)}, value=4, ),
-    # ]),
-
+    html.Div([
+        dbc.Collapse(
+            dbc.Card(dbc.CardBody([
+                html.Label('Stunden grupieren'),
+                dcc.Slider(id='hours', min=0, max=5,
+                           marks={i: str(i) for i in range(1, 6)}, value=4, ),
+            ])),
+            id="collapse",
+            is_open=False,
+        )
+    ])
 ],)

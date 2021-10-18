@@ -113,10 +113,10 @@ app_layout = dbc.Container(fluid=True, children= [
         dcc.Input(id='start_time', value='00:00', type='text'),
         dcc.Input(id='end_time', value='24:00', type='text'),
     ]),
-    # html.Div([
-    #     html.Label('Stunden grupieren'),
-    #     dcc.Slider(id='hours', min=0, max=5,
-    #                marks={i: str(i) for i in range(1, 6)}, value=4, ),
-    # ]),
+    html.Div([
+        html.Label('Stunden grupieren'),
+        dcc.Slider(id='hours', min=0, max=5,
+                   marks={i: str(i) for i in range(1, 6)}, value=4, ),
+    ]),
 
 ],)

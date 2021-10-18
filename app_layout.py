@@ -7,7 +7,7 @@ import plotly.express as px
 import plotly.graph_objects as go
 import pandas as pd
 from dash_bootstrap_templates import load_figure_template
-import figure
+import graphs
 from datetime import date
 
 
@@ -16,7 +16,7 @@ heading = dbc.Row([
     dbc.Col(html.Img(src='assets/logo.jpg', style={'align': 'middle'}), width='auto', align='end')
 ])
 
-default_fig = figure.get_default_fig()
+default_fig = graphs.get_default_fig()
 
 app_layout = dbc.Container(fluid=True, children= [
     html.Div([

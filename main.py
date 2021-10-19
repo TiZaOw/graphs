@@ -16,16 +16,17 @@ import locale
 import db
 import graphs
 import app_layout
+import os
 
 locale.setlocale(locale.LC_TIME, 'de_DE')
 load_figure_template("litera")
 
 
 app = dash.Dash(
-    external_stylesheets=[dbc.themes.LITERA]
+    external_stylesheets=[__name__, dbc.themes.LITERA]
 )
 
-
+server = app.server
 app.layout = app_layout.app_layout
 
 

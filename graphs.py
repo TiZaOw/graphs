@@ -60,8 +60,8 @@ def get_empty_figure():
     return fig
 
 def get_cleaning_df(df):
-    df = sort_by_dates(df)  # kicks NaN from Dataset, potentially removable
-    df = df.dropna(subset=["uhrzeit"])
+    df = sort_by_dates(df)
+    df = df.dropna(subset=["uhrzeit"])  # kicks NaN from Dataset, potentially removable
     return df
 
 
@@ -76,7 +76,7 @@ def get_x_axis(x, y, hours, df, month_grouped):
     return df
 
 
-def generate_figure(min_date, max_date, x_value, y_value, weekday, start_time, end_time, hours, months, df):
+def generate_figure(min_date, max_date, x_value, y_value, weekday, start_time, end_time, hours, months, weekly, df):
     #TODO "filter setzten" Funkionalität. Startet mit keinem Filter und kann hinzegfügt werden
     if min_date is not None and max_date is not None:
         df = filter_for_date(min_date, max_date, df)
@@ -84,7 +84,10 @@ def generate_figure(min_date, max_date, x_value, y_value, weekday, start_time, e
         df = filter_for_weekday(weekday, df)
     if start_time is not None and end_time is not None:
         df = filter_for_time(start_time, end_time, df)
-
+    if weekly == 'weekly':
+        # df = weekly_trend(df,y_value)
+        fig=weekly_trend(df,y_value)
+        return fig
     df = get_x_axis(x_value, y_value, hours, df, months)
 
     fig = draw_figure(x_value, y_value, df)
@@ -131,6 +134,7 @@ def group_month(df, y_value):
     df_month['datum'] = df_month['datum'].dt.strftime("%m.%Y")
     return df_month
 
+
 def group_hours(df, y_value, hours):
     if hours == 0:
         return df
@@ -144,12 +148,69 @@ def group_hours(df, y_value, hours):
     return df_time
 
 
-def sort_weekdays(df):
+def sort_weekdays(df): #sortiert wochentage und dann in draw_figure wird gegroupt... ändern?
     weekdays = ['Montag', 'Dienstag', 'Mittwoch', 'Donnerstag', 'Freitag', 'Samstag', 'Sonntag']
     from pandas.api.types import CategoricalDtype
     cat_type = CategoricalDtype(categories=weekdays, ordered=True)
     df['wochentag'] = df['wochentag'].astype(cat_type)
     return df
+
+# def sort_weekdays(df, y_value):
+#     dict_week = {"wochentag": df["wochentag"], y_value: df[y_value].astype(float)}
+#     df_week = pd.DataFrame(data=dict_week)
+#     df_week = df_week.resample(on="wochentag").mean()
+#     print(df_week)
+#     df_week = df_week.reset_index()
+#     return df_week
+
+def weekly_trend(df, y_value):
+    dict_weekly = {"datum": df["datum"], y_value: df[y_value].astype(float)}
+    df_weekly = pd.DataFrame(data=dict_weekly)
+    df_weekly['datum'] = pd.to_datetime(df_weekly['datum'], dayfirst=True)
+    df_weekly = df_weekly.resample("7d", on="datum").mean()
+    df_weekly = df_weekly.reset_index()
+    df_weekly['datum'] = df_weekly['datum'].dt.strftime("%d.%m.%y")
+    fig = go.Figure()
+    fig.add_trace(go.Scatter(
+        x=df_weekly['datum'],
+        y=smoothTriangle(df_weekly[y_value], 5),
+        mode='markers',
+        marker=dict(
+            size=2,
+            color='rgb(0, 0, 0)',
+        ),
+        name='Sine'
+    ))
+    return fig
+
+
+def smoothTriangle(data, degree):
+    triangle=np.concatenate((np.arange(degree + 1), np.arange(degree)[::-1])) # up then down
+    smoothed=[]
+
+    for i in range(degree, len(data) - degree * 2):
+        point=data[i:i + len(triangle)] * triangle
+        smoothed.append(np.sum(point)/np.sum(triangle))
+    # Handle boundaries
+    smoothed=[smoothed[0]]*int(degree + degree/2) + smoothed
+    while len(smoothed) < len(data):
+        smoothed.append(smoothed[-1])
+    return smoothed
+
+
+def draw_line_figure(x, y, data):
+    fig = make_subplots(specs=[[{"secondary_y": True}]])
+    for contestant, group in data.groupby(x, sort=False):
+        avg = list(group[y].astype(float))
+        if not avg:  # falls empty nur notwendig wegen sort_weekdays
+            break
+        avg = mean(avg)
+        m = [avg]
+        rounded = "%.2f" % avg
+        fig = fig.add_trace(go.Line(x=group[x], y=m,
+                                   hovertemplate=f"{x}: {contestant} <br>{y}: {rounded} <extra></extra>",
+                                   name=contestant, text=rounded,
+                                   showlegend=False))
 
 
 def draw_figure(x, y, data):

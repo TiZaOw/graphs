@@ -40,18 +40,19 @@ app.layout = app_layout.app_layout
     Input('start_time', 'value'),
     Input('end_time', 'value'),
     Input('hours', 'value'),
-    Input('months', 'value'))
-def visualize_func(min_date, max_date, x_value, y_value, weekday, start_time, end_time, hours, months):
+    Input('months', 'value'),
+    Input('weekly', 'value'))
+def visualize_func(min_date, max_date, x_value, y_value, weekday, start_time, end_time, hours, months, weekly):
 
-    try:
-        fig = graphs.generate_figure(min_date, max_date, x_value, y_value, weekday,
-                                     start_time, end_time, hours, months, graphs.get_cleaning_df(graphs.df))
-    except Exception as e:
-        print('error generating figure')
-        print(str(e))
-        return graphs.get_empty_figure()
-    # fig = graphs.generate_figure(min_date, max_date, x_value, y_value, weekday,
-    #                              start_time, end_time, hours, months, graphs.get_cleaning_df(graphs.df))
+    # try:
+    #     fig = graphs.generate_figure(min_date, max_date, x_value, y_value, weekday,
+    #                                  start_time, end_time, hours, months, graphs.get_cleaning_df(graphs.df))
+    # except Exception as e:
+    #     print('error generating figure')
+    #     print(str(e))
+    #     return graphs.get_empty_figure()
+    fig = graphs.generate_figure(min_date, max_date, x_value, y_value, weekday,
+                                 start_time, end_time, hours, months, weekly, graphs.get_cleaning_df(graphs.df))
 
     return fig
 

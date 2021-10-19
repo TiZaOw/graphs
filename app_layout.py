@@ -1,15 +1,10 @@
-import dash
-from dash import dcc
-import dash_html_components as html
-from dash import Output, Input
-import dash_bootstrap_components as dbc
-import plotly.express as px
-import plotly.graph_objects as go
-import pandas as pd
-from dash_bootstrap_templates import load_figure_template
-import graphs
 from datetime import date
 
+import dash_bootstrap_components as dbc
+import dash_html_components as html
+from dash import dcc
+
+import graphs
 
 heading = dbc.Row([
     dbc.Col(html.H1("Analyse Kundenbewertungen Demo"), width='auto', align='center'),
@@ -51,7 +46,19 @@ app_layout = dbc.Container(fluid=True, children= [
                             {'label': 'Score-Lieferung', 'value': 'score_lieferung'}
                         ],
                         value='score_essen'
-                    ),className='radio-group'),align='center', width='auto')
+                    ),className='radio-group'),align='center', width='auto'),
+                dbc.Col(html.Div(
+                    dbc.RadioItems(
+                        id="weekly",
+                        className="btn-group",
+                        labelClassName="btn btn-primary",
+                        labelCheckedClassName="active",
+                        options=[
+                            {"label": "weekly-trend", "value": 'weekly'},
+                            {"label": "no", "value": 'no'},
+                        ],
+                        value='weekly',
+                    ), className='radio-group'), align='center', width='auto'),
             ],width='auto', align='center'),
         ], justify='center'),
         dbc.Row([
@@ -107,7 +114,7 @@ app_layout = dbc.Container(fluid=True, children= [
             dbc.Card(dbc.CardBody([
                 html.Label('Stunden grupieren'),
                 dcc.Slider(id='hours', min=0, max=5,
-                           marks={i: str(i) for i in range(1, 6)}, value=4, ),
+                           marks={i: str(i) for i in range(0, 5)}, value=4, ),
             ])),
             id="collapse",
             is_open=False,

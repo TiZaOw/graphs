@@ -17,17 +17,32 @@ import db
 import graphs
 import app_layout
 import os
+import config_menu
 
 locale.setlocale(locale.LC_TIME, 'de_DE')
 load_figure_template("litera")
 
 
 app = dash.Dash(
-    external_stylesheets=[__name__, dbc.themes.LITERA]
+    external_stylesheets=[__name__, dbc.themes.LITERA],
+    suppress_callback_exceptions=True
 )
 
 server = app.server
 app.layout = app_layout.app_layout
+
+@app.callback(
+    Output("page-content", "children"),
+    Input('url', 'pathname')
+)
+def change_layout(pathname):
+    if pathname == "/":
+        return app_layout.layout
+    elif pathname == "/config":
+        return config_menu.layout
+    else:
+        pass
+
 
 
 @app.callback(

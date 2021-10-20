@@ -3,7 +3,6 @@ from datetime import date
 import dash_bootstrap_components as dbc
 import dash_html_components as html
 from dash import dcc
-
 import graphs
 
 heading = dbc.Row([
@@ -13,9 +12,17 @@ heading = dbc.Row([
 
 default_fig = graphs.get_default_fig()
 
-app_layout = dbc.Container(fluid=True, children= [
+x_values = ['datum','uhrzeit','wochentag']
+
+col_list = graphs.df.columns
+x_col_list= [e for e in col_list if e in x_values]
+
+layout = dbc.Container(fluid=True, children= [
     html.Div([
         dbc.Row([dbc.Col(html.Div(heading), width='auto')], justify='end'),
+        dbc.Row([
+            dcc.Link('Config Menu', href='/config')
+        ]),
         html.Hr(),
         html.Br(),
         dbc.Row([
@@ -28,9 +35,7 @@ app_layout = dbc.Container(fluid=True, children= [
                             labelClassName="btn btn-primary",
                             labelCheckedClassName="active",
                             options=[
-                                {"label": "Datum", "value": 'datum'},
-                                {"label": "Wochentag", "value": 'wochentag'},
-                                {"label": "Uhrzeit", "value": 'uhrzeit'},
+                                {'label': i, 'value': i } for i in x_col_list
                             ],
                             value='datum',
                         ),className='radio-group'),align='center', width='auto'),
@@ -57,7 +62,7 @@ app_layout = dbc.Container(fluid=True, children= [
                             {"label": "weekly-trend", "value": 'weekly'},
                             {"label": "no", "value": 'no'},
                         ],
-                        value='weekly',
+                        value='no',
                     ), className='radio-group'), align='center', width='auto'),
             ],width='auto', align='center'),
         ], justify='center'),
@@ -86,7 +91,6 @@ app_layout = dbc.Container(fluid=True, children= [
             value=['months']
         ),
     ]),
-    html.Br(),
     html.Div([
         html.Label('Wochentag Filter'),
         dcc.RadioItems(
@@ -121,3 +125,8 @@ app_layout = dbc.Container(fluid=True, children= [
         )
     ])
 ],)
+
+app_layout = html.Div([
+    dcc.Location(id='url', refresh=False),
+    html.Div(id='page-content')
+])

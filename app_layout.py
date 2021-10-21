@@ -15,7 +15,7 @@ default_fig = graphs.get_default_fig()
 import configparser
 config = configparser.ConfigParser()
 config.read('config.ini')
-print(config['values']['x-values'])
+
 x_values = config['values']['x-values']
 y_values = config['values']['y-values']
 

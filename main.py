@@ -31,6 +31,7 @@ app = dash.Dash(
 server = app.server
 app.layout = app_layout.app_layout
 
+
 @app.callback(
     Output("page-content", "children"),
     Input('url', 'pathname'))

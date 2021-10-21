@@ -24,7 +24,6 @@ wochentag = "wochentag"
 #TODO: Tim bitte hier checken, jetzt könnte man, wenn "datum" nicht vorhanden ist einfach datum umdeklarieren
 
 def extract_weekday(df):
-
     df[wochentag] = df[datum].dt.strftime('%A')
     return df
 
@@ -48,7 +47,7 @@ def check_for_time_format(df):
     df = only_date(df)
     return df
 
-df = db.df_json
+# df = db.df_json
 
 df = pd.read_excel('mongo_db/new_york_pizza_clean.xlsx')
 
@@ -70,7 +69,6 @@ def get_cleaning_df(df):
 
 
 def get_x_axis(x, y, hours, df, month_grouped):
-
     if x == datum and month_grouped:
         df = group_month(df, y)
     if x == uhrzeit:
@@ -130,8 +128,7 @@ def filter_for_time(start_time, end_time, df):
 
 
 def group_month(df, y_value):
-    dict_month = {datum: df[datum], y_value: df[y_value].astype(float)}
-    df_month = pd.DataFrame(data=dict_month)
+    df_month = pd.DataFrame({datum: df[datum], y_value: df[y_value].astype(float)})
     df_month[datum] = pd.to_datetime(df_month[datum], dayfirst=True)
     df_month = df_month.resample("M", on=datum).mean()
     df_month = df_month.reset_index()
@@ -142,8 +139,7 @@ def group_month(df, y_value):
 def group_hours(df, y_value, hours):
     if hours == 0:
         return df
-    dict_time = {uhrzeit: df[uhrzeit], y_value: df[y_value].astype(float)}
-    df_time = pd.DataFrame(data=dict_time)
+    df_time = pd.DataFrame({uhrzeit: df[uhrzeit], y_value: df[y_value].astype(float)})
     time_range = str(hours) + "H"
     df_time[uhrzeit] = pd.to_datetime(df_time[uhrzeit], format="%H-%M-%S")
     df_time = df_time.resample(time_range, on=uhrzeit).mean()
@@ -152,20 +148,13 @@ def group_hours(df, y_value, hours):
     return df_time
 
 
-def sort_weekdays(df): #sortiert wochentage und dann in draw_figure wird gegroupt... ändern?
+def sort_weekdays(df):
     weekdays = ['Montag', 'Dienstag', 'Mittwoch', 'Donnerstag', 'Freitag', 'Samstag', 'Sonntag']
     from pandas.api.types import CategoricalDtype
     cat_type = CategoricalDtype(categories=weekdays, ordered=True)
     df[wochentag] = df[wochentag].astype(cat_type)
     return df
 
-# def sort_weekdays(df, y_value):
-#     dict_week = {wochentag: df[wochentag], y_value: df[y_value].astype(float)}
-#     df_week = pd.DataFrame(data=dict_week)
-#     df_week = df_week.resample(on=wochentag).mean()
-#     print(df_week)
-#     df_week = df_week.reset_index()
-#     return df_week
 
 def weekly_trend(df, y_value):
     dict_weekly = {datum: df[datum], y_value: df[y_value].astype(float)}
@@ -206,7 +195,7 @@ def draw_line_figure(x, y, data):
     fig = make_subplots(specs=[[{"secondary_y": True}]])
     for contestant, group in data.groupby(x, sort=False):
         avg = list(group[y].astype(float))
-        if not avg:  # falls empty nur notwendig wegen sort_weekdays
+        if not avg:
             break
         avg = mean(avg)
         m = [avg]

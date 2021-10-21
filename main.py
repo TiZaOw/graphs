@@ -1,8 +1,8 @@
 import json
 import dash
-from dash import dcc
+import dash_core_components as dcc
 import dash_html_components as html
-from dash import Output, Input
+from dash.dependencies import Output, Input, State
 import dash_bootstrap_components as dbc
 import plotly.express as px
 import plotly.graph_objects as go
@@ -33,8 +33,7 @@ app.layout = app_layout.app_layout
 
 @app.callback(
     Output("page-content", "children"),
-    Input('url', 'pathname')
-)
+    Input('url', 'pathname'))
 def change_layout(pathname):
     if pathname == "/":
         return app_layout.layout
@@ -43,6 +42,18 @@ def change_layout(pathname):
     else:
         pass
 
+
+@app.callback(
+    Output('button-output', 'children'),
+    Input('submit-config', 'n_clicks'),
+    State('x-values', 'value'),
+    State('y-values', 'value'))
+def change_config(n_clicks, x_values, y_values):
+    if n_clicks > 0:
+        config_menu.write_config(x_values, y_values)
+        return 'Config file has been changed'
+    else:
+        return 'Click to change config'
 
 
 @app.callback(

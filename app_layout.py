@@ -2,7 +2,7 @@ from datetime import date
 
 import dash_bootstrap_components as dbc
 import dash_html_components as html
-from dash import dcc
+import dash_core_components as dcc
 import graphs
 
 heading = dbc.Row([
@@ -12,10 +12,17 @@ heading = dbc.Row([
 
 default_fig = graphs.get_default_fig()
 
-x_values = ['datum','uhrzeit','wochentag']
+import configparser
+config = configparser.ConfigParser()
+config.read('config.ini')
+print(config['values']['x-values'])
+x_values = config['values']['x-values']
+y_values = config['values']['y-values']
 
 col_list = graphs.df.columns
 x_col_list= [e for e in col_list if e in x_values]
+
+y_col_list= [e for e in col_list if e in y_values]
 
 layout = dbc.Container(fluid=True, children= [
     html.Div([
@@ -47,8 +54,7 @@ layout = dbc.Container(fluid=True, children= [
                         labelClassName="btn btn-secondary",
                         labelCheckedClassName="active",
                         options=[
-                            {'label': 'Score-Essen', 'value': 'score_essen'},
-                            {'label': 'Score-Lieferung', 'value': 'score_lieferung'}
+                            {'label': i, 'value': i } for i in y_col_list
                         ],
                         value='score_essen'
                     ),className='radio-group'),align='center', width='auto'),

@@ -5,24 +5,14 @@ import dash_html_components as html
 import dash_core_components as dcc
 import graphs
 
+
 heading = dbc.Row([
     dbc.Col(html.H1("Analyse Kundenbewertungen Demo"), width='auto', align='center'),
     dbc.Col(html.Img(src='assets/logo.jpg', style={'align': 'middle'}), width='auto', align='end')
 ])
 
-default_fig = graphs.get_default_fig()
+# default_fig = graphs.get_default_fig()
 
-import configparser
-config = configparser.ConfigParser()
-config.read('config.ini')
-
-x_values = config['values']['x-values']
-y_values = config['values']['y-values']
-
-col_list = graphs.df.columns
-x_col_list= [e for e in col_list if e in x_values]
-
-y_col_list= [e for e in col_list if e in y_values]
 
 layout = dbc.Container(fluid=True, children= [
     html.Div([
@@ -34,30 +24,7 @@ layout = dbc.Container(fluid=True, children= [
         html.Br(),
         dbc.Row([
             dbc.Col([
-                dbc.Row([
-                    dbc.Col(html.Div(
-                        dbc.RadioItems(
-                            id="radios",
-                            className="btn-group",
-                            labelClassName="btn btn-primary",
-                            labelCheckedClassName="active",
-                            options=[
-                                {'label': i, 'value': i } for i in x_col_list
-                            ],
-                            value='datum',
-                        ),className='radio-group'),align='center', width='auto'),
-                ],justify='center'),
-                dbc.Col(html.Div(
-                    dbc.RadioItems(
-                        id="y-value",
-                        className="btn-group",
-                        labelClassName="btn btn-secondary",
-                        labelCheckedClassName="active",
-                        options=[
-                            {'label': i, 'value': i } for i in y_col_list
-                        ],
-                        value='score_essen'
-                    ),className='radio-group'),align='center', width='auto'),
+                html.Div(id='radios'),
                 dbc.Col(html.Div(
                     dbc.RadioItems(
                         id="weekly",
@@ -74,7 +41,7 @@ layout = dbc.Container(fluid=True, children= [
         ], justify='center'),
         dbc.Row([
 
-         dbc.Col(dcc.Graph(id='graph', figure=default_fig), width='auto', align='center'),
+         dbc.Col(dcc.Graph(id='graph'), width='auto', align='center'), #hatte mal noch figure=defaultfigure nach id
 
         ], justify='center'),
     ]),

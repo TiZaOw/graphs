@@ -9,4 +9,3 @@ with open('mongo_db/test_db.json') as file:
 df_json = pd.DataFrame.from_dict(json_file, orient='columns')
 
 datum, uhrzeit = find_right_columns.configdata(df_json)
-print(datum, uhrzeit)

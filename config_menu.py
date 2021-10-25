@@ -57,3 +57,17 @@ def write_config(x_values, y_values):
     #Write the above sections to config.ini file
     with open('config.ini', 'w') as conf:
         config_object.write(conf)
+
+def get_config():
+    import configparser
+    config = configparser.ConfigParser()
+    config.read('config.ini')
+
+    x_values = config['values']['x-values']
+    y_values = config['values']['y-values']
+
+    col_list = graphs.df.columns
+    x_col_list = [e for e in col_list if e in x_values]
+
+    y_col_list = [e for e in col_list if e in y_values]
+    return x_col_list, y_col_list

@@ -39,7 +39,6 @@ def only_date(df):
     return df
 
 
-
 def check_for_time_format(df):
     df[datum] = pd.to_datetime(df[datum], dayfirst=True)
     df = extract_weekday(df)
@@ -88,7 +87,7 @@ def generate_figure(min_date, max_date, x_value, y_value, weekday, start_time, e
         df = filter_for_time(start_time, end_time, df)
     if weekly == 'weekly':
         # df = weekly_trend(df,y_value)
-        fig=weekly_trend(df,y_value)
+        fig = weekly_trend(df, y_value)
         return fig
     df = get_x_axis(x_value, y_value, hours, df, months)
 

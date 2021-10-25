@@ -38,7 +38,7 @@ app.layout = app_layout.app_layout
     Input('url', 'pathname'))
 def variable_layout(pathname):
     if pathname == "/":
-        x_col_list, y_col_list = outsourced_app_layout.change_col_list()
+        x_col_list, y_col_list = outsourced_app_layout.get_config()
         return outsourced_app_layout.changing_layout(x_col_list, y_col_list)
     else:
         pass

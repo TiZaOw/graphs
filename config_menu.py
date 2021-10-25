@@ -3,11 +3,16 @@ import dash_html_components as html
 import dash_core_components as dcc
 import dash_table
 import graphs
+import configparser
+from configparser import ConfigParser
 
 df = graphs.df
 col_list = df.columns
 
 layout = dbc.Container(fluid=True, children=[
+    html.Div(
+        dcc.Link('Back', href='/')
+    ),
     html.Div([
         html.Label("Wähle die x-Werte"),
         dcc.Checklist(
@@ -43,31 +48,16 @@ layout = dbc.Container(fluid=True, children=[
     ])
 ])
 
-from configparser import ConfigParser
-
-#Get the configparser object
-config_object = ConfigParser()
 
 def write_config(x_values, y_values):
+    # Get the configparser object
+    config_object = ConfigParser()
+
     config_object["values"] = {
         "x-values": x_values,
         "y-values": y_values
     }
-
     #Write the above sections to config.ini file
     with open('config.ini', 'w') as conf:
         config_object.write(conf)
 
-def get_config():
-    import configparser
-    config = configparser.ConfigParser()
-    config.read('config.ini')
-
-    x_values = config['values']['x-values']
-    y_values = config['values']['y-values']
-
-    col_list = graphs.df.columns
-    x_col_list = [e for e in col_list if e in x_values]
-
-    y_col_list = [e for e in col_list if e in y_values]
-    return x_col_list, y_col_list

@@ -4,7 +4,7 @@ import dash_html_components as html
 import configparser
 
 
-def change_col_list():
+def get_config():
     config = configparser.ConfigParser()
     config.read('config.ini')
 

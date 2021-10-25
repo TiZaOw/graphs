@@ -5,20 +5,14 @@ import graphs
 df = graphs.df
 # df = graphs.get_cleaning_df(graphs.df)
 import time
-
+#TODO: implementierung macht noch keinen sinn, wenn man die y-achse nicht erkennen kann
+#TODO: man könnte daten mit 0 rausfiltern und dann die 1-5 datensätze rausnehmen
 
 def isDateFormat(input):
     try:
         pd.to_datetime(input,)
         return numeric(input)
     except:
-        return False
-
-def isHourFormat(input):
-    try:
-        print(pd.to_datetime(input).dt.strftime('%H:%M'))
-        return True
-    except ValueError:
         return False
 
 
@@ -66,7 +60,6 @@ def configdata(df):
             #     print(f"%column, is timeformat")
             # print('errorfor sure')
     return datum, uhrzeit
-
 
 
 def get_x_dict(datum, uhrzeit):

@@ -1,5 +1,8 @@
 import json
+import traceback
+
 import dash
+import sys
 import dash_core_components as dcc
 import dash_html_components as html
 from dash.dependencies import Output, Input, State
@@ -83,15 +86,13 @@ def config_status_text(n_clicks, x_values, y_values):
     Input('weekly', 'value'), prevent_initial_call=True)
 def visualize_func(min_date, max_date, x_value, y_value, weekday, start_time, end_time, hours, months, weekly):
 
-    # try:
-    #     fig = graphs.generate_figure(min_date, max_date, x_value, y_value, weekday,
-    #                                  start_time, end_time, hours, months, graphs.get_cleaning_df(graphs.df))
-    # except Exception as e:
-    #     print('error generating figure')
-    #     print(str(e))
-    #     return graphs.get_empty_figure()
-    fig = graphs.generate_figure(min_date, max_date, x_value, y_value, weekday,
-                                 start_time, end_time, hours, months, weekly, graphs.get_cleaning_df(graphs.df))
+    try:
+        fig = graphs.generate_figure(min_date, max_date, x_value, y_value, weekday,
+                                     start_time, end_time, hours, months, weekly, graphs.get_cleaning_df(graphs.df))
+    except Exception:
+        print('error generating figure')
+        print(traceback.format_exc())
+        return graphs.get_empty_figure()
 
     return fig
 

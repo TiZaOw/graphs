@@ -13,12 +13,13 @@ layout = dbc.Container(fluid=True, children=[
     html.Div(
         dcc.Link('Back', href='/')
     ),
+    dbc.Col(html.H3("Config Menu"), width='auto', align='center'),
     html.Div([
         html.Label("Wähle die x-Werte"),
         dcc.Checklist(
             id="x-values",
             options=[
-                {'label': i, 'value': i } for i in col_list
+                {'label': i, 'value': i} for i in col_list
             ],
             value=[],
             labelStyle={'display': 'inline-block'}
@@ -29,7 +30,7 @@ layout = dbc.Container(fluid=True, children=[
         dcc.Checklist(
             id="y-values",
             options=[
-                {'label': i, 'value': i } for i in col_list
+                {'label': i, 'value': i} for i in col_list
             ],
             value=[],
             labelStyle={'display': 'inline-block'}
@@ -60,4 +61,3 @@ def write_config(x_values, y_values):
     #Write the above sections to config.ini file
     with open('config.ini', 'w') as conf:
         config_object.write(conf)
-

@@ -97,7 +97,7 @@ def visualize_func(min_date, max_date, x_value, y_value, weekday, start_time, en
     return fig
 
 
-@app.callback(
+@app.callback(  #collapse für Stunden grupieren
     Output("collapse", "is_open"),
     Input("x-values", "value"),
 )

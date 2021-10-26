@@ -17,9 +17,7 @@ heading = dbc.Row([
 layout = dbc.Container(fluid=True, children= [
     html.Div([
         dbc.Row([dbc.Col(html.Div(heading), width='auto')], justify='end'),
-        dbc.Row([
-            dcc.Link('Config Menu', href='/config')
-        ]),
+        dbc.Row([dcc.Link('Config Menu', href='/config')]),
         html.Hr(),
         html.Br(),
         dbc.Row([
@@ -40,9 +38,7 @@ layout = dbc.Container(fluid=True, children= [
             ],width='auto', align='center'),
         ], justify='center'),
         dbc.Row([
-
-         dbc.Col(dcc.Graph(id='graph'), width='auto', align='center'), #hatte mal noch figure=defaultfigure nach id
-
+            dbc.Col(dcc.Graph(id='graph'), width='auto', align='center'), #hatte mal noch figure=defaultfigure nach id
         ], justify='center'),
     ]),
     html.Br(),
@@ -80,7 +76,7 @@ layout = dbc.Container(fluid=True, children= [
             ],
             value='all'
         ),
-        ]),
+    ]),
     html.Div([
         html.Label('Uhrzeit Filter'),
         dcc.Input(id='start_time', value='00:00', type='text'),

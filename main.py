@@ -61,7 +61,7 @@ def change_layout(pathname):
     Input('submit-config', 'n_clicks'),
     State('x-values', 'value'),
     State('y-values', 'value'))
-def change_config(n_clicks, x_values, y_values):
+def config_status_text(n_clicks, x_values, y_values):
     if n_clicks > 0:
         config_menu.write_config(x_values, y_values)
         return 'Config file has been changed'

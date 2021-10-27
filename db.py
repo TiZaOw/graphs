@@ -21,5 +21,5 @@ reviews = db.general
 #df = pd.DataFrame.from_records(reviews.find())
 #df = pd.DataFrame(iter(db.find()))
 def fetch_data():
-    df = pd.DataFrame(iter(db.find()))
+    df = pd.DataFrame(iter(reviews.find()))
     return df

@@ -5,9 +5,23 @@ import dash_table
 import graphs
 import configparser
 from configparser import ConfigParser
+import pandas as pd
 
 df = graphs.df
 col_list = df.columns
+# df = pd.read_excel('mongo_db/new_york_pizza_clean.xlsx')
+df = df.head()
+
+
+def remove_bad_columns(df): #which dont want to be in a dash_table
+    for column in df:
+        try:
+            df[column].to_json()
+        except:
+            df = df.drop(columns=[column])
+    return df
+
+df = remove_bad_columns(df)
 
 layout = dbc.Container(fluid=True, children=[
     html.Div(

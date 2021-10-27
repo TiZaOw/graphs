@@ -1,9 +1,7 @@
 from datetime import date
-
 import dash_bootstrap_components as dbc
 import dash_html_components as html
 import dash_core_components as dcc
-import graphs
 
 
 heading = dbc.Row([
@@ -14,27 +12,17 @@ heading = dbc.Row([
 # default_fig = graphs.get_default_fig()
 
 
-layout = dbc.Container(fluid=True, children= [
+layout = dbc.Container(fluid=True, children=[
     html.Div([
         dbc.Row([dbc.Col(html.Div(heading), width='auto')], justify='end'),
         dbc.Row([dcc.Link('Config Menu', href='/config')]),
         html.Hr(),
         html.Br(),
+        ]),
+    html.Div([
         dbc.Row([
             dbc.Col([
                 html.Div(id='radios'),
-                dbc.Col(html.Div(
-                    dbc.RadioItems(
-                        id="weekly",
-                        className="btn-group",
-                        labelClassName="btn btn-primary",
-                        labelCheckedClassName="active",
-                        options=[
-                            {"label": "weekly-trend", "value": 'weekly'},
-                            {"label": "no", "value": 'no'},
-                        ],
-                        value='no',
-                    ), className='radio-group'), align='center', width='auto'),
             ],width='auto', align='center'),
         ], justify='center'),
         dbc.Row([
@@ -42,6 +30,20 @@ layout = dbc.Container(fluid=True, children= [
         ], justify='center'),
     ]),
     html.Br(),
+    html.Div([html.Div([
+        dbc.Col(html.Div(
+            dbc.RadioItems(
+                id="weekly",
+                className="btn-group",
+                labelClassName="btn btn-secondary",
+                labelCheckedClassName="active",
+                options=[
+                    {"label": "weekly-trend", "value": 'weekly'},
+                    {"label": "no", "value": 'no'},
+                ],
+                value='no',
+            ), className='radio-group'), align='center', width='auto'),
+    ]),
     html.Div([
         html.Label('Datumsbereich'),
         dcc.DatePickerRange(
@@ -52,7 +54,7 @@ layout = dbc.Container(fluid=True, children= [
         ),
     ]),
     html.Div([
-        dcc.Checklist(
+        dbc.Checklist(
             id="months",
             options=[
                 {'label': 'Monate gruppieren?', 'value': 'months'},
@@ -61,9 +63,12 @@ layout = dbc.Container(fluid=True, children= [
         ),
     ]),
     html.Div([
-        html.Label('Wochentag Filter'),
-        dcc.RadioItems(
+        html.Label('Wochentag Filter: '),
+        dbc.Col(html.Div(dcc.RadioItems(
             id="weekday",
+            # className="btn-group",
+            # labelClassName="btn btn-secondary",
+            # labelCheckedClassName="active",
             options=[
                 {'label': 'Alle Wochentage', 'value': 'all'},
                 {'label': 'Montag', 'value': 'Montag'},
@@ -75,10 +80,12 @@ layout = dbc.Container(fluid=True, children= [
                 {'label': 'Sonntag', 'value': 'Sonntag'}
             ],
             value='all'
-        ),
+        ),),)
     ]),
+    html.Br(),
+    html.Div(),
     html.Div([
-        html.Label('Uhrzeit Filter'),
+        html.Label('Uhrzeit Filter: '),
         dcc.Input(id='start_time', value='00:00', type='text'),
         dcc.Input(id='end_time', value='24:00', type='text'),
     ]),
@@ -87,13 +94,13 @@ layout = dbc.Container(fluid=True, children= [
             dbc.Card(dbc.CardBody([
                 html.Label('Stunden grupieren'),
                 dcc.Slider(id='hours', min=0, max=5,
-                           marks={i: str(i) for i in range(0, 5)}, value=4, ),
+                           marks={i: str(i) for i in range(0, 5)}, value=4),
             ])),
             id="collapse",
             is_open=False,
         )
     ])
-],)
+])])
 
 app_layout = html.Div([
     dcc.Location(id='url', refresh=False),

@@ -26,7 +26,7 @@ def changing_layout(x_col_list, y_col_list):
                 labelClassName="btn btn-primary",
                 labelCheckedClassName="active",
                 options=[
-                    {'label': i.title(), 'value': i } for i in x_col_list
+                    {'label': i.title(), 'value': i} for i in x_col_list
                 ],
                 value=x_col_list[0],
             ),className='radio-group'),align='center', width='auto'),
@@ -38,7 +38,7 @@ def changing_layout(x_col_list, y_col_list):
                 labelClassName="btn btn-secondary",
                 labelCheckedClassName="active",
                 options=[
-                    {'label': i.title(), 'value': i } for i in y_col_list
+                    {'label': i.title(), 'value': i} for i in y_col_list
                 ],
                 value=y_col_list[0]
             ),className='radio-group'),align='center', width='auto'),])

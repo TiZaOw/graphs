@@ -16,7 +16,6 @@ import locale
 import db
 import numpy as np
 
-
 #df = pd.read_excel('mongo_db/new_york_pizza_clean.xlsx')
 
 df = db.fetch_data()
@@ -34,13 +33,13 @@ def extract_weekday(df):
 
 def extract_hour(df):
     if uhrzeit not in list(df.columns):
-        df[uhrzeit] = df[datum].dt.strftime('%H-%M-%S')
+        df[uhrzeit] = df[datum].dt.strftime('%H:%M')
     else:
         return df
     return df
 
 def only_date(df):
-    df[datum] = df[datum].dt.strftime('%d-%m-%Y')
+    df[datum] = df[datum].dt.strftime('%d.%m.%Y')
     return df
 
 
@@ -50,7 +49,6 @@ def check_for_time_format(df):
     df = extract_hour(df)
     df = only_date(df)
     return df
-
 
 
 df = check_for_time_format(df)
@@ -99,9 +97,9 @@ def generate_figure(min_date, max_date, x_value, y_value, weekday, start_time, e
 
 
 def sort_by_dates(df_date):
-    df_date[datum] = pd.to_datetime(df_date[datum], dayfirst=True) #zu datetime #TODO informieren warm dayfirst nötig ist
-    df_date = df_date.sort_values(by=datum)   #sortiert
-    df_date[datum] = df_date[datum].dt.strftime("%d.%m.%Y") #umwandeln in deutsches format
+    df_date[datum] = pd.to_datetime(df_date[datum], dayfirst=True) #TODO informieren warm dayfirst nötig ist
+    df_date = df_date.sort_values(by=datum)
+    df_date[datum] = df_date[datum].dt.strftime("%d.%m.%Y")
     return df_date
 
 
@@ -139,10 +137,10 @@ def group_month(df, y_value):
 
 def group_hours(df, y_value, hours):
     if hours == 0:
-        return df
+        return df.sort_values(by=uhrzeit)
     df_time = pd.DataFrame({uhrzeit: df[uhrzeit], y_value: df[y_value].astype(float)})
     time_range = str(hours) + "H"
-    df_time[uhrzeit] = pd.to_datetime(df_time[uhrzeit], format="%H-%M-%S")
+    df_time[uhrzeit] = pd.to_datetime(df_time[uhrzeit], format="%H:%M")
     df_time = df_time.resample(time_range, on=uhrzeit).mean()
     df_time = df_time.reset_index()  # notwendig, weil das drüber den index verschiebt
     df_time[uhrzeit] = df_time[uhrzeit].dt.strftime("%H:%M")
@@ -150,15 +148,13 @@ def group_hours(df, y_value, hours):
 
 
 def group_weekdays(df, y_value):
-    days = {
-        0: "Montag", 1: "Dienstag", 2: "Mittwoch", 3: "Donnerstag",
-        4: "Freitag", 5: "Samstag", 6: "Sonntag"
-    }
-    df_week = pd.DataFrame({wochentag: pd.to_datetime(df[datum],dayfirst=True).dt.weekday,
+    days = {0: "Montag", 1: "Dienstag", 2: "Mittwoch", 3: "Donnerstag",
+            4: "Freitag", 5: "Samstag", 6: "Sonntag"}
+    df_week = pd.DataFrame({wochentag: pd.to_datetime(df[datum], dayfirst=True).dt.weekday, #wochentage als zahlen
                             y_value: df[y_value].astype(float)})
     df_week = df_week.groupby(df_week[wochentag]).mean()
     df_week = df_week.reset_index()
-    df_week = df_week.replace({wochentag: days})
+    df_week = df_week.replace({wochentag: days})    #zahlen zu wochentage
     return df_week
 
 

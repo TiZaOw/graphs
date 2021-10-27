@@ -16,6 +16,11 @@ import locale
 import db
 import numpy as np
 
+
+#df = pd.read_excel('mongo_db/new_york_pizza_clean.xlsx')
+
+df = db.fetch_data()
+
 locale.setlocale(locale.LC_TIME, 'de_DE')
 load_figure_template("litera")
 datum = "datum"
@@ -46,9 +51,7 @@ def check_for_time_format(df):
     df = only_date(df)
     return df
 
-# df = db.df_json
 
-df = pd.read_excel('mongo_db/new_york_pizza_clean.xlsx')
 
 df = check_for_time_format(df)
 

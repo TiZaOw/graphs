@@ -1,5 +1,4 @@
 import pandas as pd
-
 import graphs
 
 df = graphs.df

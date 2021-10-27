@@ -26,7 +26,7 @@ load_figure_template("litera")
 datum = "datum"
 uhrzeit = "uhrzeit"
 wochentag = "wochentag"
-#TODO: Tim bitte hier checken, jetzt könnte man, wenn "datum" nicht vorhanden ist einfach datum umdeklarieren
+
 
 def extract_weekday(df):
     df[wochentag] = df[datum].dt.strftime('%A')
@@ -76,7 +76,7 @@ def get_x_axis(x, y, hours, df, month_grouped):
     if x == uhrzeit:
         df = group_hours(df, y, hours)
     if x == wochentag:
-        df = sort_weekdays(df)
+        df = group_weekdays(df, y)
     return df
 
 
@@ -89,7 +89,6 @@ def generate_figure(min_date, max_date, x_value, y_value, weekday, start_time, e
     if start_time is not None and end_time is not None:
         df = filter_for_time(start_time, end_time, df)
     if weekly == 'weekly':
-        # df = weekly_trend(df,y_value)
         fig = weekly_trend(df, y_value)
         return fig
     df = get_x_axis(x_value, y_value, hours, df, months)
@@ -150,12 +149,17 @@ def group_hours(df, y_value, hours):
     return df_time
 
 
-def sort_weekdays(df):
-    weekdays = ['Montag', 'Dienstag', 'Mittwoch', 'Donnerstag', 'Freitag', 'Samstag', 'Sonntag']
-    from pandas.api.types import CategoricalDtype
-    cat_type = CategoricalDtype(categories=weekdays, ordered=True)
-    df[wochentag] = df[wochentag].astype(cat_type)
-    return df
+def group_weekdays(df, y_value):
+    days = {
+        0: "Montag", 1: "Dienstag", 2: "Mittwoch", 3: "Donnerstag",
+        4: "Freitag", 5: "Samstag", 6: "Sonntag"
+    }
+    df_week = pd.DataFrame({wochentag: pd.to_datetime(df[datum],dayfirst=True).dt.weekday,
+                            y_value: df[y_value].astype(float)})
+    df_week = df_week.groupby(df_week[wochentag]).mean()
+    df_week = df_week.reset_index()
+    df_week = df_week.replace({wochentag: days})
+    return df_week
 
 
 def weekly_trend(df, y_value):
@@ -166,16 +170,15 @@ def weekly_trend(df, y_value):
     df_weekly = df_weekly.reset_index()
     df_weekly[datum] = df_weekly[datum].dt.strftime("%d.%m.%y")
     fig = go.Figure()
-    fig.add_trace(go.Scatter(
-        x=df_weekly[datum],
-        y=smoothTriangle(df_weekly[y_value], 5),
-        mode='markers',
-        marker=dict(
-            size=2,
-            color='rgb(0, 0, 0)',
-        ),
-        name='Sine'
-    ))
+    fig.add_trace(go.Scatter(x=df_weekly[datum],
+                             y=smoothTriangle(df_weekly[y_value], 5),
+                             mode='markers',
+                             marker=dict(
+                                 size=2,
+                                 color='rgb(0, 0, 0)',
+                             ),
+                             name='Sine'
+                             ))
     return fig
 
 
@@ -193,26 +196,11 @@ def smoothTriangle(data, degree):
     return smoothed
 
 
-def draw_line_figure(x, y, data):
-    fig = make_subplots(specs=[[{"secondary_y": True}]])
-    for contestant, group in data.groupby(x, sort=False):
-        avg = list(group[y].astype(float))
-        if not avg:
-            break
-        avg = mean(avg)
-        m = [avg]
-        rounded = "%.2f" % avg
-        fig = fig.add_trace(go.Line(x=group[x], y=m,
-                                   hovertemplate=f"{x}: {contestant} <br>{y}: {rounded} <extra></extra>",
-                                   name=contestant, text=rounded,
-                                   showlegend=False))
-
-
 def draw_figure(x, y, data):
     fig = make_subplots(specs=[[{"secondary_y": True}]])
     for contestant, group in data.groupby(x, sort=False):
         avg = list(group[y].astype(float))
-        if not avg: #falls empty nur notwendig wegen sort_weekdays
+        if not avg: #wird nie ausgelöst, aber sicherheitshalber mal dagelassen
             break
         avg = mean(avg)
         m = [avg]

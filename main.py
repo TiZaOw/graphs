@@ -1,11 +1,10 @@
 import json
 import traceback
-
 import dash
 import sys
 import dash_core_components as dcc
 import dash_html_components as html
-from dash.dependencies import Output, Input, State
+from dash.dependencies import Output, Input, State, MATCH
 import dash_bootstrap_components as dbc
 import plotly.express as px
 import plotly.graph_objects as go
@@ -37,12 +36,23 @@ app.layout = app_layout.app_layout
 
 
 @app.callback(
+    Output('dynamic-graph', 'children'),
+    Input('dynamic-add-graph', 'n_clicks'),
+    State('dynamic-graph', 'children'))
+def display_graphs(n_clicks, children):
+    new_element = app_layout.layout_graph_and_filter(n_clicks)
+    children.append(new_element)
+    return children
+
+
+@app.callback(
     Output('radios', 'children'),
-    Input('url', 'pathname'))
-def variable_layout(pathname):
+    Input('url', 'pathname'),   #TODO: der input ist vlt nich ideal
+    State('dynamic-add-graph', 'n_clicks'))
+def variable_layout(pathname, n_clicks):
     if pathname == "/":
         x_col_list, y_col_list = outsourced_app_layout.get_config()
-        return outsourced_app_layout.changing_layout(x_col_list, y_col_list)
+        return outsourced_app_layout.changing_layout(x_col_list, y_col_list, n_clicks)
     else:
         pass
 
@@ -62,8 +72,8 @@ def change_layout(pathname):
 @app.callback(
     Output('button-output', 'children'),
     Input('submit-config', 'n_clicks'),
-    State('x-values', 'value'),
-    State('y-values', 'value'))
+    State('x-values-config', 'value'),
+    State('y-values-config', 'value'))
 def config_status_text(n_clicks, x_values, y_values):
     if n_clicks > 0:
         config_menu.write_config(x_values, y_values)
@@ -73,22 +83,23 @@ def config_status_text(n_clicks, x_values, y_values):
 
 
 @app.callback(
-    Output('graph', 'figure'),
-    Input('my-date-picker-range', 'start_date'),
-    Input('my-date-picker-range', 'end_date'),
-    Input('x-values', 'value'),
-    Input('y-values', 'value'),
-    Input('weekday', 'value'),
-    Input('start_time', 'value'),
-    Input('end_time', 'value'),
-    Input('hours', 'value'),
-    Input('months', 'value'),
-    Input('weekly', 'value'), prevent_initial_call=True)
-def visualize_func(min_date, max_date, x_value, y_value, weekday, start_time, end_time, hours, months, weekly):
+    Output({'type':'graph','index': MATCH}, 'figure'),
+    Input({'type':'my-date-picker-range','index': MATCH}, 'start_date'),
+    Input({'type':'my-date-picker-range','index': MATCH}, 'end_date'),
+    Input({'type':'x-values','index': MATCH}, 'value'),
+    Input({'type':'y-values','index': MATCH}, 'value'),
+    Input({'type':'weekday','index': MATCH}, 'value'),
+    Input({'type':'start_time','index': MATCH}, 'value'),
+    Input({'type':'end_time','index': MATCH}, 'value'),
+    Input({'type':'hours','index': MATCH}, 'value'),
+    Input({'type':'months','index': MATCH}, 'value'),
+    Input({'type':'weekly','index': MATCH}, 'value'),
+    Input({'type':'restaurant','index': MATCH}, 'value'), prevent_initial_call=True)
+def visualize_func(min_date, max_date, x_value, y_value, weekday, start_time, end_time, hours, months, weekly, restaurant):
 
     try:
         fig = graphs.generate_figure(min_date, max_date, x_value, y_value, weekday,
-                                     start_time, end_time, hours, months, weekly, graphs.get_cleaning_df(graphs.df))
+                                     start_time, end_time, hours, months, weekly, restaurant, graphs.get_cleaning_df(graphs.df))
     except Exception:
         print('error generating figure')
         print(traceback.format_exc())
@@ -98,8 +109,8 @@ def visualize_func(min_date, max_date, x_value, y_value, weekday, start_time, en
 
 
 @app.callback(  #collapse für Stunden grupieren
-    Output("collapse", "is_open"),
-    Input("x-values", "value"),
+    Output({'type':"collapse", 'index': MATCH}, "is_open"),
+    Input({'type':'x-values','index': MATCH}, 'value'),
 )
 def toggle_collapse(radios):
     if radios == "uhrzeit":

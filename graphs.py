@@ -78,8 +78,10 @@ def get_x_axis(x, y, hours, df, month_grouped):
     return df
 
 
-def generate_figure(min_date, max_date, x_value, y_value, weekday, start_time, end_time, hours, months, weekly, df):
+def generate_figure(min_date, max_date, x_value, y_value, weekday, start_time, end_time, hours, months, weekly, restaurant, df):
     #TODO "filter setzten" Funkionalität. Startet mit keinem Filter und kann hinzegfügt werden
+    if restaurant != "all":
+        df = filter_for_restaurant(restaurant, df)
     if min_date is not None and max_date is not None:
         df = filter_for_date(min_date, max_date, df)
     if weekday != "all":
@@ -101,6 +103,11 @@ def sort_by_dates(df_date):
     df_date = df_date.sort_values(by=datum)
     df_date[datum] = df_date[datum].dt.strftime("%d.%m.%Y")
     return df_date
+
+
+def filter_for_restaurant(restaurant, df):
+    df_restaurant = df.loc[restaurant == df["restaurant_name"]]
+    return df_restaurant
 
 
 def filter_for_date(min_date, max_date, df):

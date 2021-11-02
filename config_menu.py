@@ -1,7 +1,7 @@
 import dash_bootstrap_components as dbc
 import dash_html_components as html
 import dash_core_components as dcc
-import dash_table
+from dash import dash_table
 import graphs
 import configparser
 from configparser import ConfigParser
@@ -31,7 +31,7 @@ layout = dbc.Container(fluid=True, children=[
     html.Div([
         html.Label("Wähle die x-Werte"),
         dcc.Checklist(
-            id="x-values",
+            id="x-values-config",
             options=[
                 {'label': i, 'value': i} for i in col_list
             ],
@@ -42,7 +42,7 @@ layout = dbc.Container(fluid=True, children=[
     html.Div([
         html.Label("Wähle die y-Werte"),
         dcc.Checklist(
-            id="y-values",
+            id="y-values-config",
             options=[
                 {'label': i, 'value': i} for i in col_list
             ],

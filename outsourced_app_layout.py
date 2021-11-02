@@ -3,6 +3,7 @@ import dash_bootstrap_components as dbc
 import dash_html_components as html
 import configparser
 
+#TODO: graphs.df potentiell ersetzten und df wonders hernehmen
 
 def get_config():
     config = configparser.ConfigParser()
@@ -17,11 +18,11 @@ def get_config():
     return x_col_list, y_col_list
 
 
-def changing_layout(x_col_list, y_col_list):
+def changing_layout(x_col_list, y_col_list, n_clicks):
     layout = html.Div(children=[dbc.Row([
         dbc.Col(html.Div(
             dbc.RadioItems(
-                id="x-values",
+                id={'type': "x-values",'index': n_clicks},
                 className="btn-group",
                 labelClassName="btn btn-primary",
                 labelCheckedClassName="active",
@@ -33,7 +34,7 @@ def changing_layout(x_col_list, y_col_list):
     ],justify='center'),
         dbc.Col(html.Div(
             dbc.RadioItems(
-                id="y-values",
+                id={'type': "y-values", 'index': n_clicks},
                 className="btn-group",
                 labelClassName="btn btn-secondary",
                 labelCheckedClassName="active",
@@ -44,3 +45,6 @@ def changing_layout(x_col_list, y_col_list):
             ),className='radio-group'),align='center', width='auto'),])
 
     return layout
+
+
+unique_restaurant = graphs.df["restaurant_name"].unique().tolist()

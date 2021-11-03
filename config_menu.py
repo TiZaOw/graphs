@@ -1,13 +1,11 @@
 import dash_bootstrap_components as dbc
-import dash_html_components as html
-import dash_core_components as dcc
+from dash import html
+from dash import dcc
 from dash import dash_table
 import graphs
-import configparser
 from configparser import ConfigParser
-import pandas as pd
 
-df = graphs.df
+df = graphs.df_clean
 col_list = df.columns
 # df = pd.read_excel('mongo_db/new_york_pizza_clean.xlsx')
 df = df.head()

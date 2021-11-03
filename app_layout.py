@@ -1,7 +1,7 @@
 from datetime import date
 import dash_bootstrap_components as dbc
-import dash_html_components as html
-import dash_core_components as dcc
+from dash import html
+from dash import dcc
 import outsourced_app_layout
 import graphs
 
@@ -24,31 +24,23 @@ layout = dbc.Container(fluid=True, children=[
     ])
 
 
-def layout_graph_and_filter(n_clicks):
+def layout_graph_and_filter(n_clicks):  #TODO: das mal schicker machen
     layout_graph_and_filter = html.Div([
         dcc.Dropdown(
-            id={'type': 'restaurant',
-                'index': n_clicks},
+            id={'type': 'restaurant', 'index': n_clicks},
             options=[
-                # {'label': 'Alle', 'value': 'all'},
+                # {'label': 'Alle', 'value': 'all'},    #TODO: Tim möchtest du so eine option?
                 {'label': i.title(), 'value': i} for i in outsourced_app_layout.unique_restaurant
             ],
             value='all'
         ),
         html.Br(),
         html.Div([
-            dbc.Row([
-                dbc.Col([
-                    html.Div(id='radios'),
-                ],width='auto', align='center'),
-            ], justify='center'),
+            html.Div(id='radios'),
             dbc.Row([
                 dbc.Col(dcc.Graph(id={'type': 'graph', 'index': n_clicks}), width='auto', align='center'), #hatte mal noch figure=defaultfigure nach id
             ], justify='center'),
-        ]),
-        html.Br(),
-        html.Div([
-            dbc.Col(html.Div(
+            dbc.Col(
                 dbc.RadioItems(
                     id={'type': 'weekly',
                         'index': n_clicks},
@@ -60,68 +52,55 @@ def layout_graph_and_filter(n_clicks):
                         {"label": "no", "value": 'no'},
                     ],
                     value='no',
-                ), className='radio-group'), align='center', width='auto'),
-        ]),
-            html.Div([
-                html.Label('Datumsbereich'),
-                dcc.DatePickerRange(
-                    id={'type': 'my-date-picker-range',
-                        'index': n_clicks},
-                    display_format="DD.MM.YYYY",
-                    initial_visible_month=date(2021, 6, 5),
-                    # end_date=date(2021, 10, 25)
-                ),
-            ]),
-            html.Div([
-                dbc.Checklist(
-                    id={'type': 'months',
-                        'index': n_clicks},
-                    options=[
-                        {'label': 'Monate gruppieren?', 'value': 'months'},
-                    ],
-                    value=['months']
-                ),
-            ]),
-            html.Div([
-                html.Label('Wochentag Filter: '),
-                dbc.Col(html.Div(dcc.RadioItems(
-                    id={'type': 'weekday',
-                        'index': n_clicks},
-                    # className="btn-group",
-                    # labelClassName="btn btn-secondary",
-                    # labelCheckedClassName="active",
-                    options=[
-                        {'label': 'Alle Wochentage', 'value': 'all'},
-                        {'label': 'Montag', 'value': 'Montag'},
-                        {'label': 'Dienstag', 'value': 'Dienstag'},
-                        {'label': 'Mittwoch', 'value': 'Mittwoch'},
-                        {'label': 'Donnerstag', 'value': 'Donnerstag'},
-                        {'label': 'Freitag', 'value': 'Freitag'},
-                        {'label': 'Samstag', 'value': 'Samstag'},
-                        {'label': 'Sonntag', 'value': 'Sonntag'}
-                    ],
-                    value='all'
-                ),),)
-            ]),
+                ), className='radio-group'),
+            html.Label('Datumsbereich'),
+            dcc.DatePickerRange(
+                id={'type': 'my-date-picker-range',
+                    'index': n_clicks},
+                display_format="DD.MM.YYYY",
+                initial_visible_month=date(2021, 6, 5),
+            ),
+            dbc.Checklist(
+                id={'type': 'months',
+                    'index': n_clicks},
+                options=[
+                    {'label': 'Monate gruppieren?', 'value': 'months'},
+                ],
+                value=['months']
+            ),
+            html.Label('Wochentag Filter: '),
+            dcc.RadioItems(
+                id={'type': 'weekday',
+                    'index': n_clicks},
+                # className="btn-group",
+                # labelClassName="btn btn-secondary",
+                # labelCheckedClassName="active",
+                options=[
+                    {'label': 'Alle Wochentage', 'value': 'all'},
+                    {'label': 'Montag', 'value': 'Montag'},
+                    {'label': 'Dienstag', 'value': 'Dienstag'},
+                    {'label': 'Mittwoch', 'value': 'Mittwoch'},
+                    {'label': 'Donnerstag', 'value': 'Donnerstag'},
+                    {'label': 'Freitag', 'value': 'Freitag'},
+                    {'label': 'Samstag', 'value': 'Samstag'},
+                    {'label': 'Sonntag', 'value': 'Sonntag'}
+                ],
+                value='all'
+            ),
             html.Br(),
-            html.Div(),
-            html.Div([
-                html.Label('Uhrzeit Filter: '),
-                dcc.Input(id={'type': 'start_time', 'index': n_clicks}, value='00:00', type='text'),
-                dcc.Input(id={'type': 'end_time', 'index': n_clicks}, value='24:00', type='text'),
-            ]),
-            html.Div([
-                dbc.Collapse(
-                    dbc.Card(dbc.CardBody([
-                        html.Label('Stunden grupieren'),
-                        dcc.Slider(id={'type': 'hours', 'index': n_clicks}, min=0, max=5,
-                                   marks={i: str(i) for i in range(0, 5)}, value=4),
-                    ])),
-                    id={'type': "collapse", 'index': n_clicks},
-                    is_open=False,
-                )
-            ])
-    ])
+            html.Label('Uhrzeit Filter: '),
+            dcc.Input(id={'type': 'start_time', 'index': n_clicks}, value='00:00', type='text'),
+            dcc.Input(id={'type': 'end_time', 'index': n_clicks}, value='24:00', type='text'),
+            dbc.Collapse(
+                dbc.Card(dbc.CardBody([
+                    html.Label('Stunden grupieren'),
+                    dcc.Slider(id={'type': 'hours', 'index': n_clicks}, min=0, max=5,
+                               marks={i: str(i) for i in range(0, 5)}, value=4),
+                ])),
+                id={'type': "collapse", 'index': n_clicks},
+                is_open=False,
+            )
+        ])])
     return layout_graph_and_filter
 
 

@@ -1,14 +1,7 @@
-import json
-import dash
-import dash_core_components as dcc
-import dash_html_components as html
-from dash.dependencies import Output, Input
-import dash_bootstrap_components as dbc
 import plotly.express as px
 import plotly.graph_objects as go
 import pandas as pd
 from dash_bootstrap_templates import load_figure_template
-from datetime import date
 import datetime
 from statistics import mean
 from plotly.subplots import make_subplots
@@ -18,10 +11,11 @@ import numpy as np
 
 #df = pd.read_excel('mongo_db/new_york_pizza_clean.xlsx')
 
-df = db.fetch_data()
+df_raw = db.fetch_data()
 
 locale.setlocale(locale.LC_TIME, 'de_DE')
 load_figure_template("litera")
+
 datum = "datum"
 uhrzeit = "uhrzeit"
 wochentag = "wochentag"
@@ -42,7 +36,6 @@ def only_date(df):
     df[datum] = df[datum].dt.strftime('%d.%m.%Y')
     return df
 
-
 def check_for_time_format(df):
     df[datum] = pd.to_datetime(df[datum], dayfirst=True)
     df = extract_weekday(df)
@@ -50,35 +43,32 @@ def check_for_time_format(df):
     df = only_date(df)
     return df
 
-
-df = check_for_time_format(df)
-
-
 def get_default_fig():
-    fig = px.bar(df, x=datum, y='score_essen')
+    fig = px.bar(df_clean, x=datum, y='score_essen')
     return fig
 
 def get_empty_figure():
     fig = make_subplots(specs=[[{"secondary_y": True}]])
     return fig
 
-def get_cleaning_df(df):
+def get_clean_df(df):
+    df = check_for_time_format(df)
     df = sort_by_dates(df)
     df = df.dropna(subset=[uhrzeit])  # kicks NaN from Dataset, potentially removable
     return df
 
-
-def get_x_axis(x, y, hours, df, month_grouped):
-    if x == datum and month_grouped:
-        df = group_month(df, y)
-    if x == uhrzeit:
-        df = group_hours(df, y, hours)
-    if x == wochentag:
-        df = group_weekdays(df, y)
-    return df
+def sort_by_dates(df_date):
+    df_date[datum] = pd.to_datetime(df_date[datum], dayfirst=True) #TODO informieren warm dayfirst nötig ist
+    df_date = df_date.sort_values(by=datum)
+    df_date[datum] = df_date[datum].dt.strftime("%d.%m.%Y")
+    return df_date
 
 
-def generate_figure(min_date, max_date, x_value, y_value, weekday, start_time, end_time, hours, months, weekly, restaurant, df):
+df_clean = get_clean_df(df_raw)
+
+
+def generate_figure(min_date, max_date, x_value, y_value, weekday, start_time,
+                    end_time, hours, months, weekly, restaurant, df):
     #TODO "filter setzten" Funkionalität. Startet mit keinem Filter und kann hinzegfügt werden
     if restaurant != "all":
         df = filter_for_restaurant(restaurant, df)
@@ -86,7 +76,7 @@ def generate_figure(min_date, max_date, x_value, y_value, weekday, start_time, e
         df = filter_for_date(min_date, max_date, df)
     if weekday != "all":
         df = filter_for_weekday(weekday, df)
-    if start_time is not None and end_time is not None:
+    if start_time is not None and end_time is not None: #TODO: bessere bedingung maybe? läuft immer
         df = filter_for_time(start_time, end_time, df)
     if weekly == 'weekly':
         fig = weekly_trend(df, y_value)
@@ -98,11 +88,14 @@ def generate_figure(min_date, max_date, x_value, y_value, weekday, start_time, e
     return fig
 
 
-def sort_by_dates(df_date):
-    df_date[datum] = pd.to_datetime(df_date[datum], dayfirst=True) #TODO informieren warm dayfirst nötig ist
-    df_date = df_date.sort_values(by=datum)
-    df_date[datum] = df_date[datum].dt.strftime("%d.%m.%Y")
-    return df_date
+def get_x_axis(x, y, hours, df, month_grouped):
+    if x == datum and month_grouped:
+        df = group_month(df, y)
+    if x == uhrzeit:
+        df = group_hours(df, y, hours)
+    if x == wochentag:
+        df = group_weekdays(df, y)
+    return df
 
 
 def filter_for_restaurant(restaurant, df):
@@ -149,7 +142,7 @@ def group_hours(df, y_value, hours):
     time_range = str(hours) + "H"
     df_time[uhrzeit] = pd.to_datetime(df_time[uhrzeit], format="%H:%M")
     df_time = df_time.resample(time_range, on=uhrzeit).mean()
-    df_time = df_time.reset_index()  # notwendig, weil das drüber den index verschiebt
+    df_time = df_time.reset_index()  # notwendig, weil resample den index verschiebt
     df_time[uhrzeit] = df_time[uhrzeit].dt.strftime("%H:%M")
     return df_time
 
@@ -163,6 +156,22 @@ def group_weekdays(df, y_value):
     df_week = df_week.reset_index()
     df_week = df_week.replace({wochentag: days})    #zahlen zu wochentage
     return df_week
+
+
+def draw_figure(x, y, data):
+    fig = make_subplots(specs=[[{"secondary_y": True}]])
+    for contestant, group in data.groupby(x, sort=False):
+        avg = list(group[y].astype(float))
+        if not avg: #wird nie ausgelöst, aber sicherheitshalber mal dagelassen
+            break
+        avg = mean(avg)
+        m = [avg]
+        rounded = "%.2f" % avg
+        fig = fig.add_trace(go.Bar(x=group[x], y=m,
+                                   hovertemplate=f"{x}: {contestant} <br>{y}: {rounded} <extra></extra>",
+                                   name=contestant, text=rounded,
+                                   showlegend=False))
+    return fig
 
 
 def weekly_trend(df, y_value):
@@ -197,19 +206,3 @@ def smoothTriangle(data, degree):
     while len(smoothed) < len(data):
         smoothed.append(smoothed[-1])
     return smoothed
-
-
-def draw_figure(x, y, data):
-    fig = make_subplots(specs=[[{"secondary_y": True}]])
-    for contestant, group in data.groupby(x, sort=False):
-        avg = list(group[y].astype(float))
-        if not avg: #wird nie ausgelöst, aber sicherheitshalber mal dagelassen
-            break
-        avg = mean(avg)
-        m = [avg]
-        rounded = "%.2f" % avg
-        fig = fig.add_trace(go.Bar(x=group[x], y=m,
-                                   hovertemplate=f"{x}: {contestant} <br>{y}: {rounded} <extra></extra>",
-                                   name=contestant, text=rounded,
-                                   showlegend=False))
-    return fig

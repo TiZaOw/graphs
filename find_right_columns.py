@@ -1,8 +1,8 @@
 import pandas as pd
 import graphs
 
-df = graphs.df
-# df = graphs.get_cleaning_df(graphs.df)
+df = graphs.df_clean
+
 import time
 #TODO: implementierung macht noch keinen sinn, wenn man die y-achse nicht erkennen kann
 #TODO: man könnte daten mit 0 rausfiltern und dann die 1-5 datensätze rausnehmen

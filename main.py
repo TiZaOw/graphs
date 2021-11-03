@@ -1,19 +1,9 @@
-import json
 import traceback
 import dash
 import sys
-import dash_core_components as dcc
-import dash_html_components as html
 from dash.dependencies import Output, Input, State, MATCH
 import dash_bootstrap_components as dbc
-import plotly.express as px
-import plotly.graph_objects as go
-import pandas as pd
 from dash_bootstrap_templates import load_figure_template
-from datetime import date
-import datetime
-from statistics import mean
-from plotly.subplots import make_subplots
 import locale
 import db
 import graphs
@@ -25,11 +15,9 @@ import outsourced_app_layout
 locale.setlocale(locale.LC_TIME, 'de_DE')
 load_figure_template("litera")
 
-
 app = dash.Dash(
     external_stylesheets=[__name__, dbc.themes.LITERA],
-    suppress_callback_exceptions=True
-)
+    suppress_callback_exceptions=True)
 
 server = app.server
 app.layout = app_layout.app_layout
@@ -83,23 +71,24 @@ def config_status_text(n_clicks, x_values, y_values):
 
 
 @app.callback(
-    Output({'type':'graph','index': MATCH}, 'figure'),
-    Input({'type':'my-date-picker-range','index': MATCH}, 'start_date'),
-    Input({'type':'my-date-picker-range','index': MATCH}, 'end_date'),
-    Input({'type':'x-values','index': MATCH}, 'value'),
-    Input({'type':'y-values','index': MATCH}, 'value'),
-    Input({'type':'weekday','index': MATCH}, 'value'),
-    Input({'type':'start_time','index': MATCH}, 'value'),
-    Input({'type':'end_time','index': MATCH}, 'value'),
-    Input({'type':'hours','index': MATCH}, 'value'),
-    Input({'type':'months','index': MATCH}, 'value'),
-    Input({'type':'weekly','index': MATCH}, 'value'),
-    Input({'type':'restaurant','index': MATCH}, 'value'), prevent_initial_call=True)
-def visualize_func(min_date, max_date, x_value, y_value, weekday, start_time, end_time, hours, months, weekly, restaurant):
+    Output({'type': 'graph', 'index': MATCH}, 'figure'),
+    Input({'type': 'my-date-picker-range', 'index': MATCH}, 'start_date'),
+    Input({'type': 'my-date-picker-range', 'index': MATCH}, 'end_date'),
+    Input({'type': 'x-values', 'index': MATCH}, 'value'),
+    Input({'type': 'y-values', 'index': MATCH}, 'value'),
+    Input({'type': 'weekday', 'index': MATCH}, 'value'),
+    Input({'type': 'start_time', 'index': MATCH}, 'value'),
+    Input({'type': 'end_time', 'index': MATCH}, 'value'),
+    Input({'type': 'hours', 'index': MATCH}, 'value'),
+    Input({'type': 'months', 'index': MATCH}, 'value'),
+    Input({'type': 'weekly', 'index': MATCH}, 'value'),
+    Input({'type': 'restaurant', 'index': MATCH}, 'value'), prevent_initial_call=True)
+def visualize_func(min_date, max_date, x_value, y_value, weekday, start_time,
+                   end_time, hours, months, weekly, restaurant):
 
     try:
-        fig = graphs.generate_figure(min_date, max_date, x_value, y_value, weekday,
-                                     start_time, end_time, hours, months, weekly, restaurant, graphs.get_cleaning_df(graphs.df))
+        fig = graphs.generate_figure(min_date, max_date, x_value, y_value, weekday, start_time,
+                                     end_time, hours, months, weekly, restaurant, graphs.df_clean)
     except Exception:
         print('error generating figure')
         print(traceback.format_exc())
@@ -109,11 +98,10 @@ def visualize_func(min_date, max_date, x_value, y_value, weekday, start_time, en
 
 
 @app.callback(  #collapse für Stunden grupieren
-    Output({'type':"collapse", 'index': MATCH}, "is_open"),
-    Input({'type':'x-values','index': MATCH}, 'value'),
-)
+    Output({'type': "collapse", 'index': MATCH}, "is_open"),
+    Input({'type': 'x-values', 'index': MATCH}, 'value'))
 def toggle_collapse(radios):
-    if radios == "uhrzeit":
+    if radios == graphs.uhrzeit:
         return True
     return False
 

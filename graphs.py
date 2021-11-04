@@ -8,6 +8,7 @@ from plotly.subplots import make_subplots
 import locale
 import db
 import numpy as np
+import find_right_columns
 
 #df = pd.read_excel('mongo_db/new_york_pizza_clean.xlsx')
 
@@ -16,32 +17,38 @@ df_raw = db.fetch_data()
 locale.setlocale(locale.LC_TIME, 'de_DE')
 load_figure_template("litera")
 
-datum = "datum"
-uhrzeit = "uhrzeit"
+datum = find_right_columns.datum
+uhrzeit = find_right_columns.uhrzeit
 wochentag = "wochentag"
 
-
-def extract_weekday(df):
-    df[wochentag] = df[datum].dt.strftime('%A')
-    return df
-
-def extract_hour(df):
-    if uhrzeit not in list(df.columns):
-        df[uhrzeit] = df[datum].dt.strftime('%H:%M')
-    else:
-        return df
-    return df
-
-def only_date(df):
-    df[datum] = df[datum].dt.strftime('%d.%m.%Y')
-    return df
-
-def check_for_time_format(df):
-    df[datum] = pd.to_datetime(df[datum], dayfirst=True)
-    df = extract_weekday(df)
-    df = extract_hour(df)
-    df = only_date(df)
-    return df
+#
+# def extract_weekday(df):
+#     df[wochentag] = df[datum].dt.strftime('%A')
+#     return df
+#
+# def extract_hour(df):
+#     if uhrzeit not in list(df.columns):
+#         df[uhrzeit] = df[datum].dt.strftime('%H:%M')
+#     else:
+#         return df
+#     return df
+#
+# def only_date(df):
+#     df[datum] = df[datum].dt.strftime('%d.%m.%Y')
+#     return df
+#
+# def check_for_time_format(df):
+#     df[datum] = pd.to_datetime(df[datum], dayfirst=True)
+#     df = extract_weekday(df)
+#     df = extract_hour(df)
+#     df = only_date(df)
+#     return df
+#
+# def get_clean_df(df):
+#     df = check_for_time_format(df)
+#     df = sort_by_dates(df)
+#     df = df.dropna(subset=[uhrzeit])  # kicks NaN from Dataset, potentially removable
+#     return df
 
 def get_default_fig():
     fig = px.bar(df_clean, x=datum, y='score_essen')
@@ -51,11 +58,6 @@ def get_empty_figure():
     fig = make_subplots(specs=[[{"secondary_y": True}]])
     return fig
 
-def get_clean_df(df):
-    df = check_for_time_format(df)
-    df = sort_by_dates(df)
-    df = df.dropna(subset=[uhrzeit])  # kicks NaN from Dataset, potentially removable
-    return df
 
 def sort_by_dates(df_date):
     df_date[datum] = pd.to_datetime(df_date[datum], dayfirst=True) #TODO informieren warm dayfirst nötig ist
@@ -64,7 +66,7 @@ def sort_by_dates(df_date):
     return df_date
 
 
-df_clean = get_clean_df(df_raw)
+df_clean = sort_by_dates(find_right_columns.df_clean)
 
 
 def generate_figure(min_date, max_date, x_value, y_value, weekday, start_time,
@@ -81,6 +83,8 @@ def generate_figure(min_date, max_date, x_value, y_value, weekday, start_time,
     if weekly == 'weekly':
         fig = weekly_trend(df, y_value)
         return fig
+    print(y_value)
+
     df = get_x_axis(x_value, y_value, hours, df, months)
 
     fig = draw_figure(x_value, y_value, df)

@@ -30,9 +30,7 @@ layout = dbc.Container(fluid=True, children=[
         html.Label("Wähle die x-Werte"),
         dcc.Checklist(
             id="x-values-config",
-            options=[
-                {'label': i, 'value': i} for i in col_list
-            ],
+            options=[{'label': i, 'value': i} for i in col_list],
             value=[],
             labelStyle={'display': 'inline-block'}
         )
@@ -41,9 +39,7 @@ layout = dbc.Container(fluid=True, children=[
         html.Label("Wähle die y-Werte"),
         dcc.Checklist(
             id="y-values-config",
-            options=[
-                {'label': i, 'value': i} for i in col_list
-            ],
+            options=[{'label': i, 'value': i} for i in col_list],
             value=[],
             labelStyle={'display': 'inline-block'}
         )

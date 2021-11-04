@@ -1,11 +1,12 @@
 import pandas as pd
 import graphs
+import db
 
-df = graphs.df_clean
-
+# df = graphs.df_clean
+df = db.fetch_data()
+df = df.dropna(subset=["datum"])
 import time
-#TODO: implementierung macht noch keinen sinn, wenn man die y-achse nicht erkennen kann
-#TODO: man könnte daten mit 0 rausfiltern und dann die 1-5 datensätze rausnehmen
+# TODO: erkennt die y-achsen solange die scores keine 0 enthalten (und es keine weiteren columns mit werten >0 gibt)
 
 def isDateFormat(input):
     try:
@@ -27,47 +28,60 @@ def numeric(data):  #da to_datetime alle zahlen durchlässt
     except:
         return False
 
-# score=df['datum'].astype(str)
-# print(score.str.isnumeric())
-# print(df['score_essen'].str.isnumeric())
-# df['datum'].to_string().isnumeric()
-
-# print(parse(str(df["datum"].head(1))))
-# print(pd.to_datetime(df["datum"]))
-# print(str(df["datum"].head(1)))
-# print(pd.to_datetime(df["datum"]).dt.strftime("%d.%m.%Y"))
-# print(pd.to_datetime(df["datum"], format="%d-%m-%Y"))
-
 
 testdf = pd.DataFrame({'col1': ["12-1-09"], 'col2': ["5/8/2002"], 'col3': ["9.9.99"],
                        'col4': ["12:45:19"], 'col5': ["09:17"]})
 
-df2 = pd.DataFrame({"col1": ["5:26"],"col2":["15.12.2019"], "col3": ["8"], "col4": ["montag"]})
+df2 = pd.DataFrame({"col1": ["5:26"],"col2":["15.12.2019"], "col3": ["8"], "col4": ["montag"],
+                    "col5":[19],"c6":[float("NaN")]})
 
 
 def configdata(df):
     datum = 'datum'
     uhrzeit = 'uhrzeit'
     for column in df:
-        if isDateFormat(df[column]):
-            if df[column].str.contains(":").all():
+        stringdata = df[column].astype(str)
+        if isDateFormat(stringdata):
+            if stringdata.str.contains(":").all():
                 uhrzeit = column
             else:
                 datum = column
-            # print(pd.to_datetime(df[column]))
-            # if pd.to_datetime(df[column]).time():
-            #     print(f"%column, is timeformat")
-            # print('errorfor sure')
+                print('hey')
+
     return datum, uhrzeit
 
 
-def get_x_dict(datum, uhrzeit):
-    x = [{"label": "Datum", "value": datum},
-         {"label": "Wochentag", "value": 'wochentag'},
-         {"label": "Uhrzeit", "value": uhrzeit}, ]
-    #
-    return [i for i in x]
+def is_y_axis(df):
+    y_axis = []
+    for column in df:
+        if pd.to_numeric(df[column], errors='coerce').notnull().all():
+            stringdata = df[column].astype(str)
+            if stringdata.str.contains("0").any():
+                pass
+            else:
+                y_axis.append(column)
+    return y_axis
+
+print(is_y_axis(df))
+print(configdata(df))
+wochentag="wochentag"
 
 
+#wochentag wird immer überschrieben
+def extract(df):
+    datum, uhrzeit = configdata(df)
+    if datum == uhrzeit:
+        df[datum] = pd.to_datetime(df[datum], dayfirst=True)
+        df["uhrzeit"] = df[datum].dt.strftime('%H:%M')
+        df[wochentag] = df[datum].dt.strftime('%A')
+        df[datum] = df[datum].dt.strftime('%d.%m.%Y')
+        return df, datum, "uhrzeit"
+    else:
+        df[datum] = pd.to_datetime(df[datum], dayfirst=True)
+        # TODO: df[uhrzeit] format?
+        df[wochentag] = df[datum].dt.strftime('%A')
+        df[datum] = df[datum].dt.strftime('%d.%m.%Y')
+        return df, datum, uhrzeit
 
-configdata(df2)
+
+df_clean, datum, uhrzeit = extract(df)

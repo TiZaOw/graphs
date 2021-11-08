@@ -19,39 +19,11 @@ load_figure_template("litera")
 
 datum = find_right_columns.datum
 uhrzeit = find_right_columns.uhrzeit
-wochentag = "wochentag"
+wochentag = find_right_columns.wochentag
 
-#
-# def extract_weekday(df):
-#     df[wochentag] = df[datum].dt.strftime('%A')
-#     return df
-#
-# def extract_hour(df):
-#     if uhrzeit not in list(df.columns):
-#         df[uhrzeit] = df[datum].dt.strftime('%H:%M')
-#     else:
-#         return df
-#     return df
-#
-# def only_date(df):
-#     df[datum] = df[datum].dt.strftime('%d.%m.%Y')
-#     return df
-#
-# def check_for_time_format(df):
-#     df[datum] = pd.to_datetime(df[datum], dayfirst=True)
-#     df = extract_weekday(df)
-#     df = extract_hour(df)
-#     df = only_date(df)
-#     return df
-#
-# def get_clean_df(df):
-#     df = check_for_time_format(df)
-#     df = sort_by_dates(df)
-#     df = df.dropna(subset=[uhrzeit])  # kicks NaN from Dataset, potentially removable
-#     return df
 
 def get_default_fig():
-    fig = px.bar(df_clean, x=datum, y='score_essen')
+    fig = px.bar(df_sorted, x=datum, y='score_essen')
     return fig
 
 def get_empty_figure():
@@ -66,14 +38,16 @@ def sort_by_dates(df_date):
     return df_date
 
 
-df_clean = sort_by_dates(find_right_columns.df_clean)
+df_sorted = sort_by_dates(find_right_columns.df_clean)
 
 
-def generate_figure(min_date, max_date, x_value, y_value, weekday, start_time,
-                    end_time, hours, months, weekly, restaurant, df):
+def generate_figure(min_date, max_date, x_value, y_value, weekday, start_time, end_time, hours,
+                    months, weekly, restaurant, date_selector, both_y, df):
     #TODO "filter setzten" Funkionalität. Startet mit keinem Filter und kann hinzegfügt werden
     if restaurant != "all":
         df = filter_for_restaurant(restaurant, df)
+    if date_selector != 'no':
+        df = filter_for_date_with_selector(date_selector, df)
     if min_date is not None and max_date is not None:
         df = filter_for_date(min_date, max_date, df)
     if weekday != "all":
@@ -83,7 +57,13 @@ def generate_figure(min_date, max_date, x_value, y_value, weekday, start_time,
     if weekly == 'weekly':
         fig = weekly_trend(df, y_value)
         return fig
-    print(y_value)
+    if both_y != 'no':
+        import outsourced_app_layout
+        x_col_list, y_col_list = outsourced_app_layout.get_config()
+        df1 = get_x_axis(x_value, y_col_list[0], hours, df, months)
+        df2 = get_x_axis(x_value, y_col_list[1], hours, df, months)
+        fig = both_y_figure(x_value, y_col_list, df1, df2)
+        return fig
 
     df = get_x_axis(x_value, y_value, hours, df, months)
 
@@ -105,6 +85,21 @@ def get_x_axis(x, y, hours, df, month_grouped):
 def filter_for_restaurant(restaurant, df):
     df_restaurant = df.loc[restaurant == df["restaurant_name"]]
     return df_restaurant
+
+
+def filter_for_date_with_selector(range, df):
+    now = datetime.datetime.now()
+    min_date = now
+    if range == 'w':
+        min_date = now - datetime.timedelta(days=7)
+    elif range == 'm':
+        min_date = now - pd.DateOffset(months=1)
+    elif range == '3m':
+        min_date = now - pd.DateOffset(months=3)
+    elif range == 'j':
+        min_date = now - pd.DateOffset(months=12)
+    df_date = df.loc[min_date < pd.to_datetime(df[datum], dayfirst=True)]
+    return df_date
 
 
 def filter_for_date(min_date, max_date, df):
@@ -166,8 +161,6 @@ def draw_figure(x, y, data):
     fig = make_subplots(specs=[[{"secondary_y": True}]])
     for contestant, group in data.groupby(x, sort=False):
         avg = list(group[y].astype(float))
-        if not avg: #wird nie ausgelöst, aber sicherheitshalber mal dagelassen
-            break
         avg = mean(avg)
         m = [avg]
         rounded = "%.2f" % avg
@@ -178,6 +171,32 @@ def draw_figure(x, y, data):
     return fig
 
 
+def both_y_figure(x, y_col_list, df1, df2): #TODO: quite ugly -_-
+    fig = make_subplots(specs=[[{"secondary_y": True}]])
+    datalist = [df1, df2]
+    for i in range(len(datalist)):
+        for contestant, group in datalist[i].groupby(x, sort=False):
+            avg = list(group[y_col_list[i]].astype(float))
+            avg = mean(avg)
+            m = [avg]
+            rounded = "%.2f" % avg
+            if i == 0:
+                fig = fig.add_trace(go.Bar(x=group[x], y=m,
+                                           hovertemplate=f"{x}: {contestant} <br>{y_col_list[i]}: {rounded} <extra></extra>",
+                                           name=contestant, text=rounded, opacity=0.7,
+                                           showlegend=False),
+                                    secondary_y=False)
+            else:
+                fig = fig.add_trace(go.Bar(x=group[x], y=m,
+                                           hovertemplate=f"{x}: {contestant} <br>{y_col_list[i]}: {rounded} <extra></extra>",
+                                           name=contestant, text=rounded, opacity=0.7,
+                                           showlegend=False),
+                                    secondary_y=True)
+    fig.update_layout(yaxis=dict(range=[0, 5]), yaxis2=dict(range=[0, 5]))
+    return fig
+
+
+#1:1 copied from web
 def weekly_trend(df, y_value):
     dict_weekly = {datum: df[datum], y_value: df[y_value].astype(float)}
     df_weekly = pd.DataFrame(data=dict_weekly)

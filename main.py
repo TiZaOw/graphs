@@ -82,13 +82,15 @@ def config_status_text(n_clicks, x_values, y_values):
     Input({'type': 'hours', 'index': MATCH}, 'value'),
     Input({'type': 'months', 'index': MATCH}, 'value'),
     Input({'type': 'weekly', 'index': MATCH}, 'value'),
-    Input({'type': 'restaurant', 'index': MATCH}, 'value'), prevent_initial_call=True)
+    Input({'type': 'restaurant', 'index': MATCH}, 'value'),
+    Input({'type': 'date-selector', 'index': MATCH}, 'value'),
+    Input({'type': 'both-y', 'index': MATCH}, 'value'), prevent_initial_call=True)
 def visualize_func(min_date, max_date, x_value, y_value, weekday, start_time,
-                   end_time, hours, months, weekly, restaurant):
+                   end_time, hours, months, weekly, restaurant, date_selector, both_y):
 
     try:
-        fig = graphs.generate_figure(min_date, max_date, x_value, y_value, weekday, start_time,
-                                     end_time, hours, months, weekly, restaurant, graphs.df_clean)
+        fig = graphs.generate_figure(min_date, max_date, x_value, y_value, weekday, start_time, end_time, hours,
+                                     months, weekly, restaurant, date_selector, both_y, graphs.df_sorted)
     except Exception:
         print('error generating figure')
         print(traceback.format_exc())

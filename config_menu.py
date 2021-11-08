@@ -5,7 +5,7 @@ from dash import dash_table
 import graphs
 from configparser import ConfigParser
 
-df = graphs.df_clean
+df = graphs.df_sorted
 col_list = df.columns
 # df = pd.read_excel('mongo_db/new_york_pizza_clean.xlsx')
 df = df.head()

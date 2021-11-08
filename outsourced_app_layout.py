@@ -3,7 +3,7 @@ import dash_bootstrap_components as dbc
 from dash import html
 import configparser
 
-df = graphs.df_clean
+df = graphs.df_sorted
 
 
 def get_config():

@@ -29,7 +29,6 @@ def layout_graph_and_filter(n_clicks):  #TODO: das mal schicker machen
         dcc.Dropdown(
             id={'type': 'restaurant', 'index': n_clicks},
             options=[
-                # {'label': 'Alle', 'value': 'all'},    #TODO: Tim möchtest du so eine option?
                 {'label': i.title(), 'value': i} for i in outsourced_app_layout.unique_restaurant
             ],
             value='all'
@@ -37,6 +36,18 @@ def layout_graph_and_filter(n_clicks):  #TODO: das mal schicker machen
         html.Br(),
         html.Div([
             html.Div(id='radios'),
+            dbc.RadioItems(
+                id={'type': 'both-y',
+                    'index': n_clicks},
+                className="btn-group",
+                labelClassName="btn btn-secondary",
+                labelCheckedClassName="active",
+                options=[
+                    {"label": "Beide Y-Werte", "value": 'both-y'},
+                    {"label": "no", "value": 'no'},
+                ],
+                value='no',
+            ),
             dbc.Row([
                 dbc.Col(dcc.Graph(id={'type': 'graph', 'index': n_clicks}), width='auto', align='center'), #hatte mal noch figure=defaultfigure nach id
             ], justify='center'),
@@ -53,6 +64,20 @@ def layout_graph_and_filter(n_clicks):  #TODO: das mal schicker machen
                     ],
                     value='no',
                 ), className='radio-group'),
+            dbc.RadioItems(
+                id={'type': 'date-selector', 'index': n_clicks},
+                className="btn-group",
+                labelClassName="btn btn-secondary",
+                labelCheckedClassName="active",
+                options=[
+                    {"label": "Woche", "value": 'w'},
+                    {"label": "Monat", "value": 'm'},
+                    {"label": "3Monate", "value": '3m'},
+                    {"label": "Jahr", "value": 'j'},
+                    {"label": "Kein Selector", "value": 'no'},
+                ],
+                value='no',
+            ),
             html.Label('Datumsbereich'),
             dcc.DatePickerRange(
                 id={'type': 'my-date-picker-range',

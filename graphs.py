@@ -12,8 +12,6 @@ import find_right_columns
 
 #df = pd.read_excel('mongo_db/new_york_pizza_clean.xlsx')
 
-df_raw = db.fetch_data()
-
 locale.setlocale(locale.LC_TIME, 'de_DE')
 load_figure_template("litera")
 
@@ -22,9 +20,10 @@ uhrzeit = find_right_columns.uhrzeit
 wochentag = find_right_columns.wochentag
 
 
-def get_default_fig():
+def get_default_fig(): #not used right-now and hardcoded
     fig = px.bar(df_sorted, x=datum, y='score_essen')
     return fig
+
 
 def get_empty_figure():
     fig = make_subplots(specs=[[{"secondary_y": True}]])
@@ -32,7 +31,7 @@ def get_empty_figure():
 
 
 def sort_by_dates(df_date):
-    df_date[datum] = pd.to_datetime(df_date[datum], dayfirst=True) #TODO informieren warm dayfirst nötig ist
+    df_date[datum] = pd.to_datetime(df_date[datum], dayfirst=True)
     df_date = df_date.sort_values(by=datum)
     df_date[datum] = df_date[datum].dt.strftime("%d.%m.%Y")
     return df_date
@@ -52,7 +51,7 @@ def generate_figure(min_date, max_date, x_value, y_value, weekday, start_time, e
         df = filter_for_date(min_date, max_date, df)
     if weekday != "all":
         df = filter_for_weekday(weekday, df)
-    if start_time is not None and end_time is not None: #TODO: bessere bedingung maybe? läuft immer
+    if start_time != '00:00' or end_time != '24:00':
         df = filter_for_time(start_time, end_time, df)
     if weekly == 'weekly':
         fig = weekly_trend(df, y_value)
@@ -166,32 +165,26 @@ def draw_figure(x, y, data):
         rounded = "%.2f" % avg
         fig = fig.add_trace(go.Bar(x=group[x], y=m,
                                    hovertemplate=f"{x}: {contestant} <br>{y}: {rounded} <extra></extra>",
-                                   name=contestant, text=rounded,
-                                   showlegend=False))
+                                   name=contestant, text=rounded, showlegend=False))
     return fig
 
 
-def both_y_figure(x, y_col_list, df1, df2): #TODO: quite ugly -_-
+def both_y_figure(x, y_col_list, df1, df2):
     fig = make_subplots(specs=[[{"secondary_y": True}]])
-    datalist = [df1, df2]
-    for i in range(len(datalist)):
-        for contestant, group in datalist[i].groupby(x, sort=False):
+    df_list = [df1, df2]
+    for i in range(len(df_list)):
+        for contestant, group in df_list[i].groupby(x, sort=False):
             avg = list(group[y_col_list[i]].astype(float))
             avg = mean(avg)
             m = [avg]
             rounded = "%.2f" % avg
+            bar = go.Bar(x=group[x], y=m,
+                         hovertemplate=f"{x}: {contestant} <br>{y_col_list[i]}: {rounded} <extra></extra>",
+                         name=contestant, text=rounded, opacity=0.7, showlegend=False)
             if i == 0:
-                fig = fig.add_trace(go.Bar(x=group[x], y=m,
-                                           hovertemplate=f"{x}: {contestant} <br>{y_col_list[i]}: {rounded} <extra></extra>",
-                                           name=contestant, text=rounded, opacity=0.7,
-                                           showlegend=False),
-                                    secondary_y=False)
+                fig = fig.add_trace(bar, secondary_y=False)
             else:
-                fig = fig.add_trace(go.Bar(x=group[x], y=m,
-                                           hovertemplate=f"{x}: {contestant} <br>{y_col_list[i]}: {rounded} <extra></extra>",
-                                           name=contestant, text=rounded, opacity=0.7,
-                                           showlegend=False),
-                                    secondary_y=True)
+                fig = fig.add_trace(bar, secondary_y=True)
     fig.update_layout(yaxis=dict(range=[0, 5]), yaxis2=dict(range=[0, 5]))
     return fig
 

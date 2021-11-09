@@ -7,7 +7,6 @@ from configparser import ConfigParser
 
 df = graphs.df_sorted
 col_list = df.columns
-# df = pd.read_excel('mongo_db/new_york_pizza_clean.xlsx')
 df = df.head()
 
 
@@ -18,6 +17,7 @@ def remove_bad_columns(df): #which dont want to be in a dash_table
         except:
             df = df.drop(columns=[column])
     return df
+
 
 df = remove_bad_columns(df)
 

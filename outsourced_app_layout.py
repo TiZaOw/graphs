@@ -20,8 +20,8 @@ def get_config():
 
 
 def changing_layout(x_col_list, y_col_list, n_clicks):
-    layout = html.Div(children=[dbc.Row([
-        dbc.Col(html.Div(
+    layout = html.Div(children=[
+        dbc.Row([dbc.Col(html.Div(
             dbc.RadioItems(
                 id={'type': "x-values", 'index': n_clicks},
                 className="btn-group",
@@ -46,4 +46,5 @@ def changing_layout(x_col_list, y_col_list, n_clicks):
     return layout
 
 
-unique_restaurant = df["restaurant_name"].unique().tolist()
+unique_restaurant = df["restaurant_name"].unique().tolist()  # TODO: hardcoded!
+unique_restaurant.append("all")

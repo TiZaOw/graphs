@@ -5,7 +5,6 @@ from dash.dependencies import Output, Input, State, MATCH
 import dash_bootstrap_components as dbc
 from dash_bootstrap_templates import load_figure_template
 import locale
-import db
 import graphs
 import app_layout
 import os
@@ -24,10 +23,10 @@ app.layout = app_layout.app_layout
 
 
 @app.callback(
-    Output('dynamic-graph', 'children'),
+    Output('graph_and_filter', 'children'),
     Input('dynamic-add-graph', 'n_clicks'),
-    State('dynamic-graph', 'children'))
-def display_graphs(n_clicks, children):
+    State('graph_and_filter', 'children'))
+def display_graph_and_filter(n_clicks, children):
     new_element = app_layout.layout_graph_and_filter(n_clicks)
     children.append(new_element)
     return children
@@ -35,9 +34,9 @@ def display_graphs(n_clicks, children):
 
 @app.callback(
     Output('radios', 'children'),
-    Input('url', 'pathname'),   #TODO: der input ist vlt nich ideal
+    Input('url', 'pathname'),
     State('dynamic-add-graph', 'n_clicks'))
-def variable_layout(pathname, n_clicks):
+def variable_layout_of_x_and_y_options(pathname, n_clicks):
     if pathname == "/":
         x_col_list, y_col_list = outsourced_app_layout.get_config()
         return outsourced_app_layout.changing_layout(x_col_list, y_col_list, n_clicks)
@@ -62,7 +61,7 @@ def change_layout(pathname):
     Input('submit-config', 'n_clicks'),
     State('x-values-config', 'value'),
     State('y-values-config', 'value'))
-def config_status_text(n_clicks, x_values, y_values):
+def change_config(n_clicks, x_values, y_values):
     if n_clicks > 0:
         config_menu.write_config(x_values, y_values)
         return 'Config file has been changed'
@@ -85,8 +84,8 @@ def config_status_text(n_clicks, x_values, y_values):
     Input({'type': 'restaurant', 'index': MATCH}, 'value'),
     Input({'type': 'date-selector', 'index': MATCH}, 'value'),
     Input({'type': 'both-y', 'index': MATCH}, 'value'), prevent_initial_call=True)
-def visualize_func(min_date, max_date, x_value, y_value, weekday, start_time,
-                   end_time, hours, months, weekly, restaurant, date_selector, both_y):
+def visualize_func(min_date, max_date, x_value, y_value, weekday, start_time, end_time, hours,
+                   months, weekly, restaurant, date_selector, both_y):
 
     try:
         fig = graphs.generate_figure(min_date, max_date, x_value, y_value, weekday, start_time, end_time, hours,

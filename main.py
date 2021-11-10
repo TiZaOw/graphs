@@ -1,15 +1,14 @@
 import traceback
 import dash
-import sys
 from dash.dependencies import Output, Input, State, MATCH
 import dash_bootstrap_components as dbc
 from dash_bootstrap_templates import load_figure_template
 import locale
 import graphs
 import app_layout
-import os
 import config_menu
 import outsourced_app_layout
+import find_right_columns
 
 locale.setlocale(locale.LC_TIME, 'de_DE')
 load_figure_template("litera")
@@ -38,7 +37,7 @@ def display_graph_and_filter(n_clicks, children):
     State('dynamic-add-graph', 'n_clicks'))
 def variable_layout_of_x_and_y_options(pathname, n_clicks):
     if pathname == "/":
-        x_col_list, y_col_list = outsourced_app_layout.get_config()
+        x_col_list, y_col_list = find_right_columns.get_config()
         return outsourced_app_layout.changing_layout(x_col_list, y_col_list, n_clicks)
     else:
         pass
@@ -60,7 +59,7 @@ def change_layout(pathname):
     Output('table', 'columns'),
     Output('table', 'data'),
     Input('start_time_config', 'value'),
-    Input('end_time_config', 'value'))
+    Input('end_time_config', 'value'), prevent_initital_call=True)
 def change_table(start_time, end_time):
     df = config_menu.change_table(start_time, end_time)
     columns = [{"name": i, "id": i} for i in df.columns]
@@ -75,7 +74,7 @@ def change_table(start_time, end_time):
     State('y-values-config', 'value'))
 def change_config(n_clicks, x_values, y_values):
     if n_clicks > 0:
-        config_menu.write_config(x_values, y_values)
+        find_right_columns.write_config(x_values, y_values)
         return 'Config file has been changed'
     else:
         return 'Click to change config'
@@ -102,13 +101,13 @@ def visualize_func(min_date, max_date, x_value, y_value, weekday, start_time, en
 
     try:
         fig, number = graphs.generate_figure(min_date, max_date, x_value, y_value, weekday, start_time, end_time, hours,
-                                     months, weekly, restaurant, date_selector, both_y, graphs.df_sorted)
+                                             months, weekly, restaurant, date_selector, both_y, graphs.df_sorted)
     except Exception:
         print('error generating figure')
         print(traceback.format_exc())
-        return graphs.get_empty_figure(), 'Output: {}'.format(0)
+        return graphs.get_empty_figure(), 'You got an error. Congrats ~_~ ༼ つ ◕_◕ ༽つ'
 
-    return fig, 'Output: {}'.format(number)
+    return fig, 'Anzahl ausgewerteter Daten:) {}'.format(number)
 
 
 @app.callback(  #collapse für Stunden grupieren

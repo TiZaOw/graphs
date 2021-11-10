@@ -6,7 +6,6 @@ import datetime
 from statistics import mean
 from plotly.subplots import make_subplots
 import locale
-import db
 import numpy as np
 import find_right_columns
 
@@ -18,15 +17,19 @@ load_figure_template("litera")
 datum = find_right_columns.datum
 uhrzeit = find_right_columns.uhrzeit
 wochentag = find_right_columns.wochentag
+y_axis = find_right_columns.y_axis
 
 
-def get_default_fig():  # not used right-now and hardcoded
-    fig = px.bar(df_sorted, x=datum, y='score_essen')
+def get_default_fig():  # not used right-now
+    fig = px.bar(df_sorted, x=datum, y=y_axis[0])
     return fig
 
 
 def get_empty_figure():
-    fig = make_subplots(specs=[[{"secondary_y": True}]])
+    from PIL import Image
+    img = np.array(Image.open(f"assets/{'logo.jpg'}"))
+    fig = px.imshow(img)     # TODO: just 4fun, remove later..?
+    # fig = make_subplots(specs=[[{"secondary_y": True}]])
     return fig
 
 
@@ -59,8 +62,7 @@ def generate_figure(min_date, max_date, x_value, y_value, weekday, start_time, e
         fig = weekly_trend(df, y_value)
         return fig, number
     if both_y != 'no':
-        import outsourced_app_layout
-        x_col_list, y_col_list = outsourced_app_layout.get_config()
+        x_col_list, y_col_list = find_right_columns.get_config()
         df1 = get_x_axis(x_value, y_col_list[0], hours, df, months)
         df2 = get_x_axis(x_value, y_col_list[1], hours, df, months)
         fig = both_y_figure(x_value, y_col_list, df1, df2)
@@ -174,11 +176,10 @@ def draw_figure(x, y, data):
 def both_y_figure(x, y_col_list, df1, df2):
     fig = make_subplots(specs=[[{"secondary_y": True}]])
     df_list = [df1, df2]
-    color = {'score_essen': 'red',
-             'score_lieferung': 'blue'}
+    color = {y_col_list[0]: 'red',
+             y_col_list[1]: 'blue'}
 
     def check_showlegend(check_var, run_var):
-        bool = False
         if check_var != run_var:
             bool = True
         else:
@@ -211,10 +212,8 @@ def both_y_figure(x, y_col_list, df1, df2):
     return fig
 
 
-# 1:1 copied from web
 def weekly_trend(df, y_value):
-    dict_weekly = {datum: df[datum], y_value: df[y_value].astype(float)}
-    df_weekly = pd.DataFrame(data=dict_weekly)
+    df_weekly = pd.DataFrame({datum: df[datum], y_value: df[y_value].astype(float)})
     df_weekly[datum] = pd.to_datetime(df_weekly[datum], dayfirst=True)
     df_weekly = df_weekly.resample("7d", on=datum).mean()
     df_weekly = df_weekly.reset_index()
@@ -222,16 +221,17 @@ def weekly_trend(df, y_value):
     fig = go.Figure()
     fig.add_trace(go.Scatter(x=df_weekly[datum],
                              y=smoothTriangle(df_weekly[y_value], 5),
-                             mode='markers',
-                             marker=dict(
-                                 size=2,
-                                 color='rgb(0, 0, 0)',
-                             ),
+                             # mode='markers',
+                             # marker=dict(
+                             #     size=2,
+                             #     color='rgb(0, 0, 0)',
+                             # ),
                              name='Sine'
                              ))
     return fig
 
 
+# 1:1 copied from web, TODO: sollte verbessert werden, schießt errors bei zu wenig daten
 def smoothTriangle(data, degree):
     triangle = np.concatenate((np.arange(degree + 1), np.arange(degree)[::-1]))  # up then down
     smoothed = []

@@ -3,7 +3,6 @@ from dash import html
 from dash import dcc
 from dash import dash_table
 import graphs
-from configparser import ConfigParser
 
 df = graphs.df_sorted
 col_list = df.columns
@@ -25,7 +24,7 @@ layout = dbc.Container(fluid=True, children=[
     html.Div(
         dcc.Link('Back', href='/')
     ),
-    dbc.Col(html.H3("Config Menu"), width='auto', align='center'),
+    dbc.Col(html.H3("Config Menu ᓚᘏᗢ"), width='auto', align='center'),
     html.Div([
         html.Label("Wähle die x-Werte"),
         dcc.Checklist(
@@ -64,16 +63,3 @@ layout = dbc.Container(fluid=True, children=[
 def change_table(start_time, end_time):
     df_time_filtered = graphs.filter_for_time(start_time, end_time, graphs.df_sorted)
     return remove_bad_columns(df_time_filtered)
-
-
-def write_config(x_values, y_values):
-    # Get the configparser object
-    config_object = ConfigParser()
-
-    config_object["values"] = {
-        "x-values": x_values,
-        "y-values": y_values
-    }
-    #Write the above sections to config.ini file
-    with open('config.ini', 'w') as conf:
-        config_object.write(conf)

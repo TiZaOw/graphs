@@ -10,7 +10,7 @@ import db
 import numpy as np
 import find_right_columns
 
-#df = pd.read_excel('mongo_db/new_york_pizza_clean.xlsx')
+# df = pd.read_excel('mongo_db/new_york_pizza_clean.xlsx')
 
 locale.setlocale(locale.LC_TIME, 'de_DE')
 load_figure_template("litera")
@@ -20,7 +20,7 @@ uhrzeit = find_right_columns.uhrzeit
 wochentag = find_right_columns.wochentag
 
 
-def get_default_fig(): #not used right-now and hardcoded
+def get_default_fig():  # not used right-now and hardcoded
     fig = px.bar(df_sorted, x=datum, y='score_essen')
     return fig
 
@@ -42,7 +42,7 @@ df_sorted = sort_by_dates(find_right_columns.df_clean)
 
 def generate_figure(min_date, max_date, x_value, y_value, weekday, start_time, end_time, hours,
                     months, weekly, restaurant, date_selector, both_y, df):
-    #TODO "filter setzten" Funkionalität. Startet mit keinem Filter und kann hinzegfügt werden
+    # TODO "filter setzten" Funkionalität. Startet mit keinem Filter und kann hinzegfügt werden
     if restaurant != "all":
         df = filter_for_restaurant(restaurant, df)
     if date_selector != 'no':
@@ -148,11 +148,11 @@ def group_hours(df, y_value, hours):
 def group_weekdays(df, y_value):
     days = {0: "Montag", 1: "Dienstag", 2: "Mittwoch", 3: "Donnerstag",
             4: "Freitag", 5: "Samstag", 6: "Sonntag"}
-    df_week = pd.DataFrame({wochentag: pd.to_datetime(df[datum], dayfirst=True).dt.weekday, #wochentage als zahlen
+    df_week = pd.DataFrame({wochentag: pd.to_datetime(df[datum], dayfirst=True).dt.weekday,  # wochentage als zahlen
                             y_value: df[y_value].astype(float)})
     df_week = df_week.groupby(df_week[wochentag]).mean()
     df_week = df_week.reset_index()
-    df_week = df_week.replace({wochentag: days})    #zahlen zu wochentage
+    df_week = df_week.replace({wochentag: days})  # zahlen zu wochentage
     return df_week
 
 
@@ -172,24 +172,44 @@ def draw_figure(x, y, data):
 def both_y_figure(x, y_col_list, df1, df2):
     fig = make_subplots(specs=[[{"secondary_y": True}]])
     df_list = [df1, df2]
+    color = {'score_essen': 'red',
+             'score_lieferung': 'blue'}
+
+    def check_showlegend(check_var, run_var):
+        bool = False
+        if check_var != run_var:
+            bool = True
+        else:
+            bool = False
+        return bool
+
+    check_showlegend_var = -1
     for i in range(len(df_list)):
+
         for contestant, group in df_list[i].groupby(x, sort=False):
+
             avg = list(group[y_col_list[i]].astype(float))
             avg = mean(avg)
             m = [avg]
             rounded = "%.2f" % avg
             bar = go.Bar(x=group[x], y=m,
                          hovertemplate=f"{x}: {contestant} <br>{y_col_list[i]}: {rounded} <extra></extra>",
-                         name=contestant, text=rounded, opacity=0.7, showlegend=False)
+                         name=y_col_list[i], legendgroup=str(y_col_list[i]), marker={'color': color[y_col_list[i]]},
+                         text=rounded, opacity=0.7, showlegend=check_showlegend(check_showlegend_var, i))
             if i == 0:
                 fig = fig.add_trace(bar, secondary_y=False)
             else:
                 fig = fig.add_trace(bar, secondary_y=True)
+
+            if check_showlegend_var != i:
+                check_showlegend_var = i
+
     fig.update_layout(yaxis=dict(range=[0, 5]), yaxis2=dict(range=[0, 5]))
+
     return fig
 
 
-#1:1 copied from web
+# 1:1 copied from web
 def weekly_trend(df, y_value):
     dict_weekly = {datum: df[datum], y_value: df[y_value].astype(float)}
     df_weekly = pd.DataFrame(data=dict_weekly)
@@ -211,14 +231,14 @@ def weekly_trend(df, y_value):
 
 
 def smoothTriangle(data, degree):
-    triangle=np.concatenate((np.arange(degree + 1), np.arange(degree)[::-1])) # up then down
-    smoothed=[]
+    triangle = np.concatenate((np.arange(degree + 1), np.arange(degree)[::-1]))  # up then down
+    smoothed = []
 
     for i in range(degree, len(data) - degree * 2):
-        point=data[i:i + len(triangle)] * triangle
-        smoothed.append(np.sum(point)/np.sum(triangle))
+        point = data[i:i + len(triangle)] * triangle
+        smoothed.append(np.sum(point) / np.sum(triangle))
     # Handle boundaries
-    smoothed=[smoothed[0]]*int(degree + degree/2) + smoothed
+    smoothed = [smoothed[0]] * int(degree + degree / 2) + smoothed
     while len(smoothed) < len(data):
         smoothed.append(smoothed[-1])
     return smoothed

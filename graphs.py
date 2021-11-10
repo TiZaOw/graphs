@@ -53,22 +53,24 @@ def generate_figure(min_date, max_date, x_value, y_value, weekday, start_time, e
         df = filter_for_weekday(weekday, df)
     if start_time != '00:00' or end_time != '24:00':
         df = filter_for_time(start_time, end_time, df)
+
+    number = df.shape[0]
     if weekly == 'weekly':
         fig = weekly_trend(df, y_value)
-        return fig
+        return fig, number
     if both_y != 'no':
         import outsourced_app_layout
         x_col_list, y_col_list = outsourced_app_layout.get_config()
         df1 = get_x_axis(x_value, y_col_list[0], hours, df, months)
         df2 = get_x_axis(x_value, y_col_list[1], hours, df, months)
         fig = both_y_figure(x_value, y_col_list, df1, df2)
-        return fig
+        return fig, number
 
     df = get_x_axis(x_value, y_value, hours, df, months)
 
     fig = draw_figure(x_value, y_value, df)
 
-    return fig
+    return fig, number
 
 
 def get_x_axis(x, y, hours, df, month_grouped):

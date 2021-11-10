@@ -83,6 +83,7 @@ def change_config(n_clicks, x_values, y_values):
 
 @app.callback(
     Output({'type': 'graph', 'index': MATCH}, 'figure'),
+    Output({'type': 'number_of_values', 'index': MATCH}, 'children'),
     Input({'type': 'my-date-picker-range', 'index': MATCH}, 'start_date'),
     Input({'type': 'my-date-picker-range', 'index': MATCH}, 'end_date'),
     Input({'type': 'x-values', 'index': MATCH}, 'value'),
@@ -100,14 +101,14 @@ def visualize_func(min_date, max_date, x_value, y_value, weekday, start_time, en
                    months, weekly, restaurant, date_selector, both_y):
 
     try:
-        fig = graphs.generate_figure(min_date, max_date, x_value, y_value, weekday, start_time, end_time, hours,
+        fig, number = graphs.generate_figure(min_date, max_date, x_value, y_value, weekday, start_time, end_time, hours,
                                      months, weekly, restaurant, date_selector, both_y, graphs.df_sorted)
     except Exception:
         print('error generating figure')
         print(traceback.format_exc())
-        return graphs.get_empty_figure()
+        return graphs.get_empty_figure(), 'Output: {}'.format(0)
 
-    return fig
+    return fig, 'Output: {}'.format(number)
 
 
 @app.callback(  #collapse für Stunden grupieren

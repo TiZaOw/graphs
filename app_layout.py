@@ -28,6 +28,7 @@ def layout_graph_and_filter(n_clicks):  #TODO: das mal schicker machen
             options=[{'label': i.title(), 'value': i} for i in outsourced_app_layout.unique_restaurant],
             value='all'
         ),
+        html.Div(id={'type': 'number_of_values', 'index': n_clicks}),
         html.Br(),
         html.Div(id='radios'),
         dbc.RadioItems(

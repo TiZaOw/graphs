@@ -57,6 +57,18 @@ def change_layout(pathname):
 
 
 @app.callback(
+    Output('table', 'columns'),
+    Output('table', 'data'),
+    Input('start_time_config', 'value'),
+    Input('end_time_config', 'value'))
+def change_table(start_time, end_time):
+    df = config_menu.change_table(start_time, end_time)
+    columns = [{"name": i, "id": i} for i in df.columns]
+    data = df.to_dict('records')
+    return columns, data
+
+
+@app.callback(
     Output('button-output', 'children'),
     Input('submit-config', 'n_clicks'),
     State('x-values-config', 'value'),

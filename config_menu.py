@@ -48,6 +48,9 @@ layout = dbc.Container(fluid=True, children=[
         html.Button("Submit to config", id="submit-config", n_clicks=0),
         html.Div(id='button-output')
     ]),
+    html.Label('Uhrzeit Filter: '),
+    dcc.Input(id='start_time_config', value='03:00', type='text'),
+    dcc.Input(id='end_time_config', value='06:00', type='text'),
     html.Div([
         dash_table.DataTable(
             id='table',
@@ -56,6 +59,11 @@ layout = dbc.Container(fluid=True, children=[
         )
     ])
 ])
+
+
+def change_table(start_time, end_time):
+    df_time_filtered = graphs.filter_for_time(start_time, end_time, graphs.df_sorted)
+    return remove_bad_columns(df_time_filtered)
 
 
 def write_config(x_values, y_values):

@@ -28,8 +28,3 @@ def changing_layout(x_col_list, y_col_list, n_clicks):
     ])
 
     return layout
-
-
-df = graphs.df_sorted
-unique_restaurant = df["restaurant_name"].unique().tolist()
-unique_restaurant.append("all")

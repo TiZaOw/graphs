@@ -2,7 +2,7 @@ from datetime import date
 import dash_bootstrap_components as dbc
 from dash import html
 from dash import dcc
-import outsourced_app_layout
+import find_right_columns
 import graphs
 
 heading = dbc.Row([
@@ -25,12 +25,13 @@ def layout_graph_and_filter(n_clicks):  #TODO: das mal schicker machen
     layout_graph_and_filter = html.Div([
         dcc.Dropdown(
             id={'type': 'restaurant', 'index': n_clicks},
-            options=[{'label': i.title(), 'value': i} for i in outsourced_app_layout.unique_restaurant],
+            options=[{'label': i.title(), 'value': i} for i in find_right_columns.unique_restaurant],
             value='all'
         ),
         html.Div(id={'type': 'number_of_values', 'index': n_clicks}),
         html.Br(),
         html.Div(id='radios'),
+        dbc.Col(
         dbc.RadioItems(
             id={'type': 'both-y', 'index': n_clicks},
             className="btn-group",
@@ -41,7 +42,7 @@ def layout_graph_and_filter(n_clicks):  #TODO: das mal schicker machen
                 {"label": "no", "value": 'no'},
             ],
             value='no',
-        ),
+        ), className='radio-group'),
         dbc.Row([
             dbc.Col(dcc.Graph(id={'type': 'graph', 'index': n_clicks}), width='auto', align='center'), #hatte mal noch figure=defaultfigure nach id
         ], justify='center'),
@@ -58,7 +59,7 @@ def layout_graph_and_filter(n_clicks):  #TODO: das mal schicker machen
                 value='no',
             ), className='radio-group'),
         dbc.RadioItems(
-            id={'type': 'date-selector', 'index': n_clicks},
+            id={'type': 'w/m/3m/j-selector', 'index': n_clicks},
             className="btn-group",
             labelClassName="btn btn-secondary",
             labelCheckedClassName="active",

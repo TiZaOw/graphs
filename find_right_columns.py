@@ -2,8 +2,7 @@ import pandas as pd
 import db
 import configparser
 
-df_raw = db.fetch_data()
-
+# hier werden die columns aus dem df gesucht, mit denen weiter gearbeitet wird
 # TODO: muss aufjedenfall noch getestet werden ;)
 # TODO: erkennt die y-achsen solange die scores keine 0 enthalten (und es keine weiteren columns mit werten >0 gibt)
 # zur Erklärung: is_x_axis, schaut ob es ein datetime format ist und dann ob es den für uhrzeiten typischen : enthält
@@ -23,7 +22,7 @@ def numeric(data):  # da to_datetime alle zahlen durchlässt
     try:
         stringdata = data.astype(str)
         num = stringdata.str.isnumeric()
-        # schaut ob alle werte numerisch sind -> datums haben ./-
+        # schaut ob alle werte numerisch sind -> datums haben ./- -> kickt scores, usw
         if num.all():
             return False
         else:
@@ -65,22 +64,24 @@ def is_y_axis(df):
 def set_right_x(df):
     datum, uhrzeit = is_x_axis(df)
     wochentag = "wochentag"
+    df[datum] = pd.to_datetime(df[datum], dayfirst=True)
+    df[wochentag] = df[datum].dt.strftime('%A')
     if datum == uhrzeit:
-        df[datum] = pd.to_datetime(df[datum], dayfirst=True)
         df["uhrzeit"] = df[datum].dt.strftime('%H:%M')
-        df[wochentag] = df[datum].dt.strftime('%A')
         df[datum] = df[datum].dt.strftime('%d.%m.%Y')
         return df, datum, "uhrzeit", wochentag
     else:
-        df[datum] = pd.to_datetime(df[datum], dayfirst=True)
         # TODO: df[uhrzeit] format?, währe in dem Fall schon richtig (?)
-        df[wochentag] = df[datum].dt.strftime('%A')
         df[datum] = df[datum].dt.strftime('%d.%m.%Y')
         return df, datum, uhrzeit, wochentag
 
 
+df_raw = db.fetch_data()
+
 df_clean, datum, uhrzeit, wochentag = set_right_x(df_raw)
 y_axis = is_y_axis(df_clean)
+unique_restaurant = df_clean["restaurant_name"].unique().tolist()
+unique_restaurant.append("all")
 df_clean = df_clean.dropna(subset=[datum])  # drops NaN
 
 

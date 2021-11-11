@@ -44,21 +44,12 @@ df_sorted = sort_by_dates(find_right_columns.df_clean)
 
 
 def generate_figure(min_date, max_date, x_value, y_value, weekday, start_time, end_time, hours,
-                    months, weekly, restaurant, date_selector, both_y, df):
+                    months, weekly, restaurant, wmj_selector, both_y, df):
     # TODO "filter setzten" Funkionalität. Startet mit keinem Filter und kann hinzegfügt werden
-    if restaurant != "all":
-        df = filter_for_restaurant(restaurant, df)
-    if date_selector != 'no':
-        df = filter_for_date_with_selector(date_selector, df)
-    if min_date is not None and max_date is not None:
-        df = filter_for_date(min_date, max_date, df)
-    if weekday != "all":
-        df = filter_for_weekday(weekday, df)
-    if start_time != '00:00' or end_time != '24:00':
-        df = filter_for_time(start_time, end_time, df)
+    df = all_filters(min_date, max_date, weekday, start_time, end_time, restaurant, wmj_selector, df)
 
     number = df.shape[0]
-    if weekly == 'weekly':
+    if weekly != 'no':
         fig = weekly_trend(df, y_value)
         return fig, number
     if both_y != 'no':
@@ -73,6 +64,20 @@ def generate_figure(min_date, max_date, x_value, y_value, weekday, start_time, e
     fig = draw_figure(x_value, y_value, df)
 
     return fig, number
+
+
+def all_filters(min_date, max_date, weekday, start_time, end_time, restaurant, wmj_selector, df):
+    if restaurant != "all":
+        df = filter_for_restaurant(restaurant, df)
+    if wmj_selector != 'no':
+        df = filter_for_date_with_selector(wmj_selector, df)
+    if min_date is not None and max_date is not None:
+        df = filter_for_date(min_date, max_date, df)
+    if weekday != "all":
+        df = filter_for_weekday(weekday, df)
+    if start_time != '00:00' or end_time != '24:00':
+        df = filter_for_time(start_time, end_time, df)
+    return df
 
 
 def get_x_axis(x, y, hours, df, month_grouped):
@@ -222,16 +227,13 @@ def weekly_trend(df, y_value):
     fig.add_trace(go.Scatter(x=df_weekly[datum],
                              y=smoothTriangle(df_weekly[y_value], 5),
                              # mode='markers',
-                             # marker=dict(
-                             #     size=2,
-                             #     color='rgb(0, 0, 0)',
-                             # ),
+                             # marker=dict(size=2, color='rgb(0, 0, 0)'),
                              name='Sine'
                              ))
     return fig
 
 
-# 1:1 copied from web, TODO: sollte verbessert werden, schießt errors bei zu wenig daten
+# 1:1 copied from web, TODO: sollte verbessert werden, schießt errors bei zu wenig daten...was sinn macht
 def smoothTriangle(data, degree):
     triangle = np.concatenate((np.arange(degree + 1), np.arange(degree)[::-1]))  # up then down
     smoothed = []

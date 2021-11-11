@@ -60,7 +60,7 @@ def change_layout(pathname):
     Output('table', 'data'),
     Input('start_time_config', 'value'),
     Input('end_time_config', 'value'), prevent_initital_call=True)
-def change_table(start_time, end_time):
+def change_config_table(start_time, end_time):
     df = config_menu.change_table(start_time, end_time)
     columns = [{"name": i, "id": i} for i in df.columns]
     data = df.to_dict('records')
@@ -94,20 +94,20 @@ def change_config(n_clicks, x_values, y_values):
     Input({'type': 'months', 'index': MATCH}, 'value'),
     Input({'type': 'weekly', 'index': MATCH}, 'value'),
     Input({'type': 'restaurant', 'index': MATCH}, 'value'),
-    Input({'type': 'date-selector', 'index': MATCH}, 'value'),
+    Input({'type': 'w/m/3m/j-selector', 'index': MATCH}, 'value'),
     Input({'type': 'both-y', 'index': MATCH}, 'value'), prevent_initial_call=True)
 def visualize_func(min_date, max_date, x_value, y_value, weekday, start_time, end_time, hours,
-                   months, weekly, restaurant, date_selector, both_y):
+                   months, weekly, restaurant, wmj_selector, both_y):
 
     try:
         fig, number = graphs.generate_figure(min_date, max_date, x_value, y_value, weekday, start_time, end_time, hours,
-                                             months, weekly, restaurant, date_selector, both_y, graphs.df_sorted)
+                                             months, weekly, restaurant, wmj_selector, both_y, graphs.df_sorted)
     except Exception:
         print('error generating figure')
         print(traceback.format_exc())
-        return graphs.get_empty_figure(), 'You got an error. Congrats ~_~ ༼ つ ◕_◕ ༽つ'
+        return graphs.get_empty_figure(), 'You got an error ~_~. Congrats ༼ つ ◕_◕ ༽つ'
 
-    return fig, 'Anzahl ausgewerteter Daten:) {}'.format(number)
+    return fig, 'Anzahl ausgewerteter Daten:) {} ( ͡° ͜ʖ ͡°)'.format(number)
 
 
 @app.callback(  #collapse für Stunden grupieren

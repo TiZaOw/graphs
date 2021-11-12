@@ -7,17 +7,17 @@ from statistics import mean
 from plotly.subplots import make_subplots
 import locale
 import numpy as np
-import find_right_columns
+import check_col_dtypes
 
 # df = pd.read_excel('mongo_db/new_york_pizza_clean.xlsx')
 
 locale.setlocale(locale.LC_TIME, 'de_DE')
 load_figure_template("litera")
 
-datum = find_right_columns.datum
-uhrzeit = find_right_columns.uhrzeit
-wochentag = find_right_columns.wochentag
-y_axis = find_right_columns.y_axis
+datum = check_col_dtypes.datum #TODO aus config lesen?
+uhrzeit = check_col_dtypes.uhrzeit
+wochentag = check_col_dtypes.wochentag
+y_axis = check_col_dtypes.y_axis
 
 
 def get_default_fig():  # not used right-now
@@ -26,10 +26,10 @@ def get_default_fig():  # not used right-now
 
 
 def get_empty_figure():
-    from PIL import Image
-    img = np.array(Image.open(f"assets/{'logo.jpg'}"))
-    fig = px.imshow(img)     # TODO: just 4fun, remove later..?
-    # fig = make_subplots(specs=[[{"secondary_y": True}]])
+    #from PIL import Image
+    #img = np.array(Image.open(f"assets/{'logo.jpg'}"))
+    #fig = px.imshow(img)     # TODO: just 4fun, remove later..?
+    fig = make_subplots(specs=[[{"secondary_y": True}]])
     return fig
 
 
@@ -40,33 +40,33 @@ def sort_by_dates(df_date):
     return df_date
 
 
-df_sorted = sort_by_dates(find_right_columns.df_clean)
+df_sorted = sort_by_dates(check_col_dtypes.df_clean)
 
 
 def generate_figure(min_date, max_date, x_value, y_value, weekday, start_time, end_time, hours,
-                    months, weekly, restaurant, wmj_selector, both_y, df):
+                    months, weekly_trend_selector, restaurant, wmj_selector, both_y, df):
     # TODO "filter setzten" Funkionalität. Startet mit keinem Filter und kann hinzegfügt werden
-    df = all_filters(min_date, max_date, weekday, start_time, end_time, restaurant, wmj_selector, df)
+    df = with_all_filters(min_date, max_date, weekday, start_time, end_time, restaurant, wmj_selector, df)
 
-    number = df.shape[0]
-    if weekly != 'no':
+    number_of_rows = df.shape[0]
+    if weekly_trend_selector != 'no':
         fig = weekly_trend(df, y_value)
-        return fig, number
+        return fig, number_of_rows
     if both_y != 'no':
-        x_col_list, y_col_list = find_right_columns.get_config()
+        x_col_list, y_col_list = check_col_dtypes.get_config()
         df1 = get_x_axis(x_value, y_col_list[0], hours, df, months)
         df2 = get_x_axis(x_value, y_col_list[1], hours, df, months)
         fig = both_y_figure(x_value, y_col_list, df1, df2)
-        return fig, number
+        return fig, number_of_rows
 
     df = get_x_axis(x_value, y_value, hours, df, months)
 
     fig = draw_figure(x_value, y_value, df)
 
-    return fig, number
+    return fig, number_of_rows
 
 
-def all_filters(min_date, max_date, weekday, start_time, end_time, restaurant, wmj_selector, df):
+def with_all_filters(min_date, max_date, weekday, start_time, end_time, restaurant, wmj_selector, df):
     if restaurant != "all":
         df = filter_for_restaurant(restaurant, df)
     if wmj_selector != 'no':
@@ -225,16 +225,17 @@ def weekly_trend(df, y_value):
     df_weekly[datum] = df_weekly[datum].dt.strftime("%d.%m.%y")
     fig = go.Figure()
     fig.add_trace(go.Scatter(x=df_weekly[datum],
-                             y=smoothTriangle(df_weekly[y_value], 5),
+                             y=smooth_triangle(df_weekly[y_value], 12),
                              # mode='markers',
                              # marker=dict(size=2, color='rgb(0, 0, 0)'),
                              name='Sine'
                              ))
+    fig.update_layout(yaxis=dict(range=[0, 5]))
     return fig
 
 
 # 1:1 copied from web, TODO: sollte verbessert werden, schießt errors bei zu wenig daten...was sinn macht
-def smoothTriangle(data, degree):
+def smooth_triangle(data, degree):
     triangle = np.concatenate((np.arange(degree + 1), np.arange(degree)[::-1]))  # up then down
     smoothed = []
 

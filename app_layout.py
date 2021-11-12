@@ -2,7 +2,7 @@ from datetime import date
 import dash_bootstrap_components as dbc
 from dash import html
 from dash import dcc
-import find_right_columns
+import check_col_dtypes
 import graphs
 
 heading = dbc.Row([
@@ -21,11 +21,11 @@ layout = dbc.Container(fluid=True, children=[
 ])
 
 
-def layout_graph_and_filter(n_clicks):  #TODO: das mal schicker machen
+def add_layout_graph_and_filter(n_clicks):  #TODO: das mal schicker machen
     layout_graph_and_filter = html.Div([
         dcc.Dropdown(
             id={'type': 'restaurant', 'index': n_clicks},
-            options=[{'label': i.title(), 'value': i} for i in find_right_columns.unique_restaurant],
+            options=[{'label': i.title(), 'value': i} for i in check_col_dtypes.unique_restaurant],
             value='all'
         ),
         html.Div(id={'type': 'number_of_values', 'index': n_clicks}),
@@ -81,7 +81,7 @@ def layout_graph_and_filter(n_clicks):  #TODO: das mal schicker machen
         dbc.Checklist(
             id={'type': 'months', 'index': n_clicks},
             options=[
-                {'label': 'Monate gruppieren?', 'value': 'months'},
+                {'label': 'Monate gruppieren auf Y-Achse gruppieren?', 'value': 'months'},
             ],
             value=['months']
         ),

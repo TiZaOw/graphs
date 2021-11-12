@@ -23,3 +23,8 @@ reviews = db.general
 def fetch_data():
     df = pd.DataFrame(iter(reviews.find()))
     return df
+
+def fetch_data_locally():
+    df = pd.read_excel('mongo_db/data.xlsx')
+    df = df.drop(columns={'Unnamed: 0', 'Unnamed: 0.1'})
+    return df

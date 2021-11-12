@@ -1,3 +1,4 @@
+import sys
 import traceback
 import dash
 from dash.dependencies import Output, Input, State, MATCH
@@ -7,8 +8,8 @@ import locale
 import graphs
 import app_layout
 import config_menu
-import outsourced_app_layout
-import find_right_columns
+import dynamic_app_layout
+import check_col_dtypes
 
 locale.setlocale(locale.LC_TIME, 'de_DE')
 load_figure_template("litera")
@@ -26,7 +27,7 @@ app.layout = app_layout.app_layout
     Input('dynamic-add-graph', 'n_clicks'),
     State('graph_and_filter', 'children'))
 def display_graph_and_filter(n_clicks, children):
-    new_element = app_layout.layout_graph_and_filter(n_clicks)
+    new_element = app_layout.add_layout_graph_and_filter(n_clicks)
     children.append(new_element)
     return children
 
@@ -37,8 +38,8 @@ def display_graph_and_filter(n_clicks, children):
     State('dynamic-add-graph', 'n_clicks'))
 def variable_layout_of_x_and_y_options(pathname, n_clicks):
     if pathname == "/":
-        x_col_list, y_col_list = find_right_columns.get_config()
-        return outsourced_app_layout.changing_layout(x_col_list, y_col_list, n_clicks)
+        x_col_list, y_col_list = check_col_dtypes.get_config()
+        return dynamic_app_layout.changing_layout(x_col_list, y_col_list, n_clicks)
     else:
         pass
 
@@ -60,7 +61,7 @@ def change_layout(pathname):
     Output('table', 'data'),
     Input('start_time_config', 'value'),
     Input('end_time_config', 'value'), prevent_initital_call=True)
-def change_config_table(start_time, end_time):
+def change_config_table(start_time, end_time): #TODO brake line in Review-Text
     df = config_menu.change_table(start_time, end_time)
     columns = [{"name": i, "id": i} for i in df.columns]
     data = df.to_dict('records')
@@ -72,9 +73,9 @@ def change_config_table(start_time, end_time):
     Input('submit-config', 'n_clicks'),
     State('x-values-config', 'value'),
     State('y-values-config', 'value'))
-def change_config(n_clicks, x_values, y_values):
+def change_config(n_clicks, x_values, y_values): #TODO diplay active config field as check marked
     if n_clicks > 0:
-        find_right_columns.write_config(x_values, y_values)
+        check_col_dtypes.write_config(x_values, y_values)
         return 'Config file has been changed'
     else:
         return 'Click to change config'
@@ -103,11 +104,12 @@ def visualize_func(min_date, max_date, x_value, y_value, weekday, start_time, en
         fig, number = graphs.generate_figure(min_date, max_date, x_value, y_value, weekday, start_time, end_time, hours,
                                              months, weekly, restaurant, wmj_selector, both_y, graphs.df_sorted)
     except Exception:
+
         print('error generating figure')
         print(traceback.format_exc())
         return graphs.get_empty_figure(), 'You got an error ~_~. Congrats ༼ つ ◕_◕ ༽つ'
 
-    return fig, 'Anzahl ausgewerteter Daten:) {} ( ͡° ͜ʖ ͡°)'.format(number)
+    return fig, 'Anzahl ausgewerteter Daten: {} ( ͡° ͜ʖ ͡°)'.format(number)
 
 
 @app.callback(  #collapse für Stunden grupieren

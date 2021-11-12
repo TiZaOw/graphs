@@ -52,16 +52,16 @@ def is_y_axis(df):
     y_axis = []
     for column in df:
         if pd.to_numeric(df[column], errors='coerce').notnull().all():
-            stringdata = df[column].astype(str)
-            if stringdata.str.contains("0").any():
-                pass
-            else:
-                y_axis.append(column)
+            #stringdata = df[column].astype(str)
+            #if stringdata.str.contains("0").any():
+             #   pass
+            #else:
+            y_axis.append(column)
     return y_axis
 
 
 # TODO: wochentag wird in graphs.py nie verwendet, könnte weggelassen werden? (hier wird eng-version erstellt)
-def set_right_x(df):
+def set_x_axis_values(df):
     datum, uhrzeit = is_x_axis(df)
     wochentag = "wochentag"
     df[datum] = pd.to_datetime(df[datum], dayfirst=True)
@@ -76,16 +76,20 @@ def set_right_x(df):
         return df, datum, uhrzeit, wochentag
 
 
-df_raw = db.fetch_data()
+#df_raw = db.fetch_data()
+df_raw = db.fetch_data_locally()
 
-df_clean, datum, uhrzeit, wochentag = set_right_x(df_raw)
-y_axis = is_y_axis(df_clean)
-unique_restaurant = df_clean["restaurant_name"].unique().tolist()
+df_clean, datum, uhrzeit, wochentag = set_x_axis_values(df_raw)
+
+df_clean = df_clean.dropna(subset=[datum, 'restaurant_name', 'score_essen', 'score_lieferung'])  # drops NaN
+
+unique_restaurant = df_clean["restaurant_name"].unique().tolist() #TODO config festlegen welche col restaurant_name ist
 unique_restaurant.append("all")
-df_clean = df_clean.dropna(subset=[datum])  # drops NaN
+y_axis = is_y_axis(df_clean)
 
 
-def write_config(x_values, y_values):
+
+def write_config(x_values, y_values): #TODO auslagern
     # Get the configparser object
     config_object = configparser.ConfigParser()
 
@@ -98,7 +102,7 @@ def write_config(x_values, y_values):
         config_object.write(conf)
 
 
-def get_config():
+def get_config(): #TODO auslagern
     config = configparser.ConfigParser()
     config.read('config.ini')
 
